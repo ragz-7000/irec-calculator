@@ -4,7 +4,7 @@ import plotly.express as px
 from fpdf import FPDF
 
 # Page Configuration
-st.set_page_config(page_title="I-REC Hybrid Dashboard", layout="wide")
+st.set_page_config(page_title="I-REC Asset Management", layout="wide")
 
 # --- APP LOGIC ---
 st.title("🛡️ I-REC Asset Management & Revenue Dashboard")
@@ -14,70 +14,89 @@ solar_mw = st.sidebar.number_input("Solar (MW)", value=10.0)
 wind_mw = st.sidebar.number_input("Wind (MW)", value=15.0)
 
 st.sidebar.header("2. Market Assumptions (INR)")
-sol_p = st.sidebar.slider("Solar Price (per MWh)", 30, 100, 65)
-win_p = st.sidebar.slider("Wind Price (per MWh)", 30, 100, 55)
+sol_p = st.sidebar.slider("Solar I-REC Sale Price", 30, 100, 65)
+win_p = st.sidebar.slider("Wind I-REC Sale Price", 30, 100, 55)
 
-st.sidebar.header("3. Service Structure")
+st.sidebar.header("3. ICX Fee Parameters")
+# Standard ICX Rate for Grid Injection is approx. 2.25 INR
+icx_issuance_rate = st.sidebar.number_input("ICX Issuance Fee (INR/MWh)", value=2.25)
 fee_pct = st.sidebar.slider("Your Success Fee (%)", 0, 20, 10)
 
-# --- CALCULATIONS ---
-# 1. Generation
+# --- CALCULATIONS (ICX STANDARDS) ---
+# Generation Assumptions: Solar 20% CUF, Wind 35% CUF
 s_gen = solar_mw * 8760 * 0.20 
 w_gen = wind_mw * 8760 * 0.35  
 total_recs = s_gen + w_gen
 
-# 2. Revenue
+# Revenue Calculation
 gross_rev = (s_gen * sol_p) + (w_gen * win_p)
 
-# 3. 2026 REGULATORY COSTS (I-TRACK / GCC / ICX)
-# One-time Project Registration (Valid for 5 years)
-one_time_reg_fee = 89000 if (solar_mw + wind_mw) > 3 else 44500
-annual_amortized_reg = one_time_reg_fee / 5
+# ICX Tiered Registration Fee (One-time for 5 years)
+# < 3MW = ~44.5k | > 3MW = ~89k
+one_time_reg = 89000 if (solar_mw + wind_mw) > 3 else 44500
+annual_reg_amortized = one_time_reg / 5
 
-# Annual Maintenance Fee (Registry level)
+# Annual Maintenance (I-TRACK Standard)
 annual_maintenance = 180000 
 
-# Issuance Fee (Variable based on MWh)
-issuance_rate = 3.50 
-total_issuance_cost = total_recs * issuance_rate
+# Issuance Cost based on ICX Rate
+total_issuance_cost = total_recs * icx_issuance_rate
 
-total_reg_costs_annual = annual_maintenance + annual_amortized_reg + total_issuance_cost
+total_reg_costs_annual = annual_maintenance + annual_reg_amortized + total_issuance_cost
 
-# 4. Final Profits
+# Final Profit Logic
 net_before_consultancy = gross_rev - total_reg_costs_annual
 my_fee = net_before_consultancy * (fee_pct / 100)
 client_final = net_before_consultancy - my_fee
 
 # --- DASHBOARD DISPLAY ---
-m1, m2, m3, m4 = st.columns(4)
-m1.metric("Annual I-RECs", f"{int(total_recs):,}")
-m2.metric("Gross Revenue", f"₹{int(gross_rev):,}")
-m3.metric("Annual Regulatory Cost", f"₹{int(total_reg_costs_annual):,}")
-m4.metric("Net Client Profit", f"₹{int(client_final):,}")
+col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+col_m1.metric("Annual I-RECs", f"{int(total_recs):,}")
+col_m2.metric("Gross Revenue", f"₹{int(gross_rev):,}")
+col_m3.metric("ICX & Registry Costs", f"₹{int(total_reg_costs_annual):,}")
+col_m4.metric("Net Client Profit", f"₹{int(client_final):,}")
 
 st.markdown("---")
 
-# --- COST BREAKDOWN ---
-st.subheader("📊 Detailed Expenditure Analysis")
+# --- DETAILED COST BREAKDOWN ---
+st.subheader("📊 ICX Fee Schedule & Compliance Costs")
 c1, c2 = st.columns(2)
 
 with c1:
-    st.info("**Regulatory & Registry Charges**")
-    cost_breakdown = {
-        "Cost Item": ["One-time Project Registration", "Annual Maintenance Fee", "Issuance Fee (per MWh)"],
-        "Amount (INR)": [f"₹{int(one_time_reg_fee):,}", f"₹{int(annual_maintenance):,}", f"₹{issuance_rate}/MWh"],
-        "Frequency": ["Every 5 Years", "Annual", "Monthly"]
+    st.info("**Regulatory Expenditure (Annualized)**")
+    cost_data = {
+        "Cost Item": ["Project Registration (ICX)", "Annual Registry Maintenance", "Variable Issuance Fee"],
+        "Rate": [f"₹{int(one_time_reg):,} (5yr)", "₹1,80,000", f"₹{icx_issuance_rate}/MWh"],
+        "Annual Impact": [f"₹{int(annual_reg_amortized):,}", f"₹{int(annual_maintenance):,}", f"₹{int(total_issuance_cost):,}"]
     }
-    st.table(pd.DataFrame(cost_breakdown))
+    st.table(pd.DataFrame(cost_data))
 
 with c2:
-    st.info("**Consultancy & Success Fee**")
-    st.write(f"Based on your {fee_pct}% performance structure:")
-    st.write(f"**Your Management Fee:** ₹{int(my_fee):,}")
+    st.info("**Consultancy Management**")
+    st.write(f"Management of the full lifecycle at a {fee_pct}% Success Fee.")
+    st.write(f"**Professional Fee:** ₹{int(my_fee):,}")
     st.write("---")
-    st.write("**Total Annualized Overhead:**")
-    st.title(f"₹{int(total_reg_costs_annual + my_fee):,}")
+    st.write("**Final Annualized Project Upside:**")
+    st.title(f"₹{int(client_final):,}")
 
-# Charts
-fig = px.pie(values=[s_gen * sol_p, w_gen * win_p], names=['Solar Revenue', 'Wind Revenue'], 
-             hole=0.4, title
+# Revenue Mix Chart
+fig = px.pie(
+    values=[s_gen * sol_p, w_gen * win_p], 
+    names=['Solar I-RECs', 'Wind I-RECs'], 
+    hole=0.4, 
+    title="Revenue Contribution by Asset Class",
+    color_discrete_sequence=['#f9d71c', '#87ceeb']
+)
+st.plotly_chart(fig, use_container_width=True)
+
+# --- PDF GENERATION ---
+def create_pdf():
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 18)
+    pdf.cell(0, 15, f"I-REC Commercial Summary: {proj_name}", ln=True, align="C")
+    pdf.set_font("Helvetica", "", 12)
+    pdf.ln(10)
+    pdf.cell(0, 10, f"Total Capacity: {solar_mw + wind_mw} MW (Hybrid)", ln=True)
+    pdf.cell(0, 10, f"Annual Issuance Estimate: {int(total_recs):,} I-RECs", ln=True)
+    pdf.cell(0
