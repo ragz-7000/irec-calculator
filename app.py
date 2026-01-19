@@ -90,3 +90,12 @@ if st.button("Prepare PDF Report"):
         )
     except Exception as e:
         st.error(f"Error generating PDF: {e}")
+# Add this inside your app.py to show cost breakdown
+st.subheader("🏦 Detailed Cost Breakdown")
+with st.expander("Show Regulatory vs. Service Costs"):
+    st.write(f"**Regulatory Fees (Est. Annual):** ₹{int(total_registry_fees):,}")
+    st.write(f"**Professional Management Fee:** ₹{int(my_fee):,}")
+    st.write(f"**Total Cost of Compliance:** ₹{int(total_registry_fees + my_fee):,}")
+    
+    efficiency_ratio = (net_to_client / gross_total) * 100
+    st.info(f"Efficiency: Your project retains **{efficiency_ratio:.1f}%** of its environmental value after all costs.")
