@@ -4,101 +4,123 @@ import plotly.express as px
 from fpdf import FPDF
 
 # Page Configuration
-st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
+st.set_page_config(page_title="I-REC Hybrid Valuation v2", layout="wide")
 
-# --- 1. CONFIGURATION & CURRENCY (JAN 2026 v2) ---
+# --- 1. 2026 v2 FEE CONSTANTS ---
 USD_TO_INR = 90.95 
-GST_RATE = 0.18  # 18% GST on local services
+GST_RATE = 0.18
 
-# I-TRACK Foundation Fees (USD)
-ACCOUNT_OPENING_USD = 588.50
-ANNUAL_ACCOUNT_USD = 2354.00
-REDEMPTION_FEE_USD = 0.08  # v2 Global Rate
+# A. Global Registry Fees (I-TRACK Foundation - USD)
+# These are typically exempt from local GST but subject to RCM by the client.
+ACC_OPENING_USD = 588.50      # One-time
+ANNUAL_TRADE_ACC_USD = 2354.00 # Yearly Maintenance
+REDEMPTION_LEVY_USD = 0.08     # Global Platform Operator Fee (v2)
 
-# ICX Local Fees (INR) - 2026 v2 Revised
-REGISTRATION_FEE_INR = 104110.00 # For >3MW Projects
-ISSUANCE_FEE_INR = 2.60         # Standard Grid-Connected
+# B. Local Issuer Fees (ICX India - INR) - Subject to 18% GST
+ICX_REG_BASE = 104110.00      # Registration for >3MW (5-year validity)
+ICX_ISSUANCE_BASE = 2.60       # Standard Issuance per MWh
+ICX_AUDIT_BASE = 10000.00      # Independent Verification Provision
 
 # --- 2. SIDEBAR INPUTS ---
-st.sidebar.header("📊 Project Configuration")
-proj_name = st.sidebar.text_input("Project Name", "ABR Hybrid Project")
+st.sidebar.header("📊 Asset Configuration")
+proj_name = st.sidebar.text_input("Project Name", "ABR Hybrid 150MW")
 solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=100.0)
 wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=50.0)
 
-st.sidebar.header("💹 Market Dynamics")
-irec_price_usd = st.sidebar.slider("I-REC Sale Price (USD)", 0.20, 1.20, 0.50, 0.05)
+st.sidebar.header("💹 Market Assumptions")
+irec_price_usd = st.sidebar.slider("Sale Price (USD)", 0.20, 1.20, 0.50, 0.05)
 irec_price_inr = irec_price_usd * USD_TO_INR
 
-st.sidebar.header("💼 Service Parameters")
-fee_pct = st.sidebar.slider("Triara CAP's Success Fee (%)", 15, 25, 17)
+st.sidebar.header("💼 Triara CAP Commercials")
+fee_pct = st.sidebar.slider("Success Fee (%)", 15, 25, 17)
 
-# --- 3. THE COMPLETE COST ENGINE ---
-s_gen = solar_mw * 8760 * 0.20 
-w_gen = wind_mw * 8760 * 0.35  
-total_irecs = s_gen + w_gen
+# --- 3. THE CALCULATION ENGINE ---
+total_irecs = (solar_mw * 8760 * 0.20) + (wind_mw * 8760 * 0.35)
 
-# A. Regulatory Costs (INR) + GST
-annual_reg_cost = (REGISTRATION_FEE_INR / 5) * (1 + GST_RATE) # Amortized + GST
-annual_maint_fee = (ANNUAL_ACCOUNT_USD * USD_TO_INR)          # Global (No GST usually)
-icx_issuance_total = (total_irecs * ISSUANCE_FEE_INR) * (1 + GST_RATE) 
-redemption_total = (total_irecs * REDEMPTION_FEE_USD * USD_TO_INR)
-verification_audit = 10000 * (1 + GST_RATE)
+# 3.1 Global Registry Costs (INR)
+global_setup = ACC_OPENING_USD * USD_TO_INR
+global_maint = ANNUAL_TRADE_ACC_USD * USD_TO_INR
+global_redemption = total_irecs * REDEMPTION_LEVY_USD * USD_TO_INR
 
-# B. Totals
+# 3.2 Local ICX Costs (INR + 18% GST)
+local_reg_annual = (ICX_REG_BASE / 5) * (1 + GST_RATE) # Amortized
+local_issuance = (total_irecs * ICX_ISSUANCE_BASE) * (1 + GST_RATE)
+local_audit = ICX_AUDIT_BASE * (1 + GST_RATE)
+
+# 3.3 Summary Metrics
 gross_revenue = total_irecs * irec_price_inr
-total_op_costs = annual_reg_cost + annual_maint_fee + icx_issuance_total + redemption_total + verification_audit
-
-# C. Success Fee
-net_pre_fee = gross_revenue - total_op_costs
-my_fee = net_pre_fee * (fee_pct / 100) # Triara Fee (GST applied on invoice separately)
-total_annual_expenses = total_op_costs + my_fee
-client_net_profit = gross_revenue - total_annual_expenses
+total_compliance_costs = global_maint + global_redemption + local_reg_annual + local_issuance + local_audit
+net_pre_fee = gross_revenue - total_compliance_costs
+triara_success_fee = net_pre_fee * (fee_pct / 100)
+client_final_net = net_pre_fee - triara_success_fee
 
 # --- 4. DASHBOARD UI ---
-st.title(f"🚀 I-REC Valuation Dashboard: Aditya Birla Renewables")
-st.info(f"Assumptions: Sale Price ${irec_price_usd:.2f} | Exch Rate ₹{USD_TO_INR} | **GST 18% applied to ICX Fees**")
+st.title(f"🚀 I-REC Commercial Strategy for Aditya Birla Renewables")
+st.info(f"Market Benchmarks: Sale Price ${irec_price_usd:.2f} | Global Redemption ${REDEMPTION_LEVY_USD} | Local GST 18%")
 
-m1, m2, m3, m4, m5 = st.columns(5)
-m1.metric("Capacity", f"{solar_mw + wind_mw} MW")
-m2.metric("Total I-RECs", f"{int(total_irecs):,}")
-m3.metric("Total Revenue", f"₹{int(gross_revenue):,}")
-m4.metric("Total Expenses", f"₹{int(total_annual_expenses):,}")
-m5.metric("Net Client Profit", f"₹{int(client_net_profit):,}")
+# Top Row Metrics
+c1, c2, c3, c4, c5 = st.columns(5)
+c1.metric("Annual I-RECs", f"{int(total_irecs):,}")
+c2.metric("Gross Revenue", f"₹{int(gross_revenue):,}")
+c3.metric("Total Expenses", f"₹{int(total_compliance_costs + triara_success_fee):,}")
+c4.metric("Triara Fee", f"₹{int(triara_success_fee):,}")
+c5.metric("Net Client Profit", f"₹{int(client_final_net):,}")
 
 st.markdown("---")
-st.subheader("📋 Detailed Expenditure (Incl. 18% GST where applicable)")
 
-cost_items = [
-    "Registry Registration (Incl. GST)", 
-    "Registry Maintenance (Annual)", 
-    "Issuance Fees (Incl. GST)", 
-    "Redemption Fees", 
-    "Independent Audit (Incl. GST)", 
-    "Triara CAP Success Fee"
-]
-costs_inr = [annual_reg_cost, annual_maint_fee, icx_issuance_total, redemption_total, verification_audit, my_fee]
-
-df_data = pd.DataFrame({
-    "Cost Component": cost_items,
-    "Annual Expense (INR)": [f"₹{int(c):,}" for c in costs_inr],
-    "Cost per I-REC (INR)": [f"₹{c/total_irecs:.2f}" for c in costs_inr]
+# --- 5. DETAILED COST TABLE ---
+st.subheader("📋 Exhaustive 2026 v2 Compliance & Service Fee Schedule")
+cost_breakdown = pd.DataFrame({
+    "Category": ["Global Setup", "Global Maintenance", "Global Operational", "Local Setup", "Local Operational", "Local Compliance", "Service"],
+    "Cost Component": [
+        "Account Opening Fee (One-time)", 
+        "Annual Trade Account Fee", 
+        "Platform Operator Redemption Fee", 
+        "Asset Registration (Amortized + GST)", 
+        "Issuance Fees (ICX + GST)", 
+        "Independent Verification (+ GST)", 
+        "Triara CAP Success Fee"
+    ],
+    "Annual INR": [
+        global_setup, 
+        global_maint, 
+        global_redemption, 
+        local_reg_annual, 
+        local_issuance, 
+        local_audit, 
+        triara_success_fee
+    ]
 })
-st.table(df_data)
+cost_breakdown["Per I-REC"] = cost_breakdown["Annual INR"] / total_irecs
+st.table(cost_breakdown.style.format({"Annual INR": "₹{:,.0f}", "Per I-REC": "₹{:,.2f}"}))
 
-# --- 5. PDF EXPORT ---
+# --- 6. VISUAL ANALYSIS ---
+col_l, col_r = st.columns(2)
+with col_l:
+    fig_p = px.pie(values=[total_compliance_costs, triara_success_fee, client_final_net], 
+                   names=['Regulatory Costs', 'Triara Fee', 'Net Profit'],
+                   hole=0.4, color_discrete_sequence=['#ff4b4b', '#0066cc', '#00cc96'])
+    st.plotly_chart(fig_p, use_container_width=True)
+with col_r:
+    fig_b = px.bar(x=["Revenue", "Expenses", "Net Profit"], 
+                   y=[gross_revenue, (total_compliance_costs + triara_success_fee), client_final_net],
+                   color=["Revenue", "Expense", "Profit"], text_auto='.3s')
+    st.plotly_chart(fig_b, use_container_width=True)
+
+# --- 7. PDF EXPORT ---
 def create_pdf():
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", "B", 16)
-    pdf.cell(w=0, h=15, txt=f"I-REC Commercial Valuation: {proj_name}", ln=True, align='C')
+    pdf.set_font("Arial", "B", 18)
+    pdf.cell(0, 15, "ADITYA BIRLA RENEWABLES: I-REC VALUATION", ln=True, align='C')
     pdf.set_font("Arial", "", 12)
     pdf.ln(10)
-    pdf.cell(w=0, h=10, txt=f"Total I-REC Volume: {int(total_irecs):,} Units", ln=True)
-    pdf.cell(w=0, h=10, txt=f"Net Annual Profit: INR {int(client_net_profit):,}", ln=True)
+    pdf.cell(0, 10, f"Annual Volume Projection: {int(total_irecs):,} MWh", ln=True)
+    pdf.cell(0, 10, f"Net Annualized Revenue: INR {int(client_final_net):,}", ln=True)
     pdf.ln(5)
     pdf.set_font("Arial", "I", 10)
-    pdf.multi_cell(0, 8, "Note: All local ICX payments include 18% GST as per 2026 v2 standards.")
+    pdf.multi_cell(0, 7, "Calculated based on I-TRACK Foundation Fee Structure 2026 v2. Local ICX fees include 18% GST.")
     return bytes(pdf.output())
 
-if st.sidebar.button("Export Proposal"):
-    st.sidebar.download_button("Download PDF", data=create_pdf(), file_name="ABR_IREC_Proposal.pdf")
+if st.sidebar.button("Export Board Proposal"):
+    st.sidebar.download_button("Download PDF", data=create_pdf(), file_name="ABR_IREC_Full_Proposal.pdf")
