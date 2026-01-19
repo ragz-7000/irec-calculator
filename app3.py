@@ -51,7 +51,7 @@ client_net_profit = gross_revenue - total_annual_expenses
 st.title(f"🚀 I-REC Valuation Dashboard for Aditya Birla Renewables")
 
 # CLEANED ASSUMPTION HEADER
-st.info(f"Assumptions: Sale Price ${irec_price_usd:0.2f} | Redemption Fee ${REDEMPTION_FEE_USD} | Exch Rate ₹{USD_TO_INR}")
+st.info(f"Assumptions: Sale Price "$"{irec_price_usd:0.2f} | Redemption Fee "$"{REDEMPTION_FEE_USD} | Exch Rate ₹{USD_TO_INR}")
 
 # Top Metrics (5 Columns to include Total Expenses)
 m1, m2, m3, m4, m5 = st.columns(5)
