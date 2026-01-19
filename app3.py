@@ -4,7 +4,7 @@ import plotly.express as px
 from fpdf import FPDF
 
 # Page Configuration
-st.set_page_config(page_title="I-REC Hybrid Asset Model for Aditya Birla Renewables", layout="wide")
+st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
 
 # --- 1. CONFIGURATION & CURRENCY (JAN 2026) ---
 USD_TO_INR = 90.95 
@@ -22,7 +22,7 @@ irec_price_usd = st.sidebar.slider("I-REC Sale Price (USD)", 0.20, 1.20, 0.50, 0
 irec_price_inr = irec_price_usd * USD_TO_INR
 
 st.sidebar.header("💼 Service Parameters")
-fee_pct = st.sidebar.slider("Consultancy Success Fee (%)", 0, 25, 15)
+fee_pct = st.sidebar.slider("Triara CAP's Success Fee (%)", 15, 25, 17)
 
 # --- 3. THE COMPLETE COST & REVENUE ENGINE ---
 s_gen = solar_mw * 8760 * 0.20 
@@ -48,7 +48,7 @@ total_annual_expenses = total_op_costs + my_fee
 client_net_profit = gross_revenue - total_annual_expenses
 
 # --- 4. DASHBOARD UI ---
-st.title(f"🚀 I-REC Valuation Dashboard: {proj_name}")
+st.title(f"🚀 I-REC Valuation Dashboard for Aditya Birla Renewables: {proj_name}")
 
 # CLEANED ASSUMPTION HEADER
 st.info(f"Assumptions: Sale Price ${irec_price_usd:.2f}  |  Redemption Fee ${REDEMPTION_FEE_USD:.2f}  |  Exch Rate ₹{USD_TO_INR}")
