@@ -4,25 +4,25 @@ import plotly.express as px
 from fpdf import FPDF
 
 # Page Configuration
-st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
+st.set_page_config(page_title="I-REC Hybrid Asset Model for Aditya Birla Renewables", layout="wide")
 
 # --- 1. CONFIGURATION & CURRENCY (JAN 2026) ---
 USD_TO_INR = 90.95 
 REDEMPTION_FEE_USD = 0.07  
-ISSUANCE_FEE_INR = 2.25    
+ISSUANCE_FEE_INR = 2.23    
 
 # --- 2. SIDEBAR INPUTS ---
 st.sidebar.header("📊 Project Configuration")
-proj_name = st.sidebar.text_input("Project Name", "Hybrid Wind-Solar Project")
-solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=10.0)
-wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=15.0)
+proj_name = st.sidebar.text_input("Project Name", "Wind-Solar Hybrid Project")
+solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=100.0)
+wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=50.0)
 
 st.sidebar.header("💹 Market Dynamics")
-irec_price_usd = st.sidebar.slider("I-REC Sale Price (USD)", 0.20, 1.50, 0.50, 0.05)
+irec_price_usd = st.sidebar.slider("I-REC Sale Price (USD)", 0.20, 1.20, 0.50, 0.05)
 irec_price_inr = irec_price_usd * USD_TO_INR
 
 st.sidebar.header("💼 Service Parameters")
-fee_pct = st.sidebar.slider("Consultancy Success Fee (%)", 0, 20, 10)
+fee_pct = st.sidebar.slider("Consultancy Success Fee (%)", 0, 25, 15)
 
 # --- 3. THE COMPLETE COST & REVENUE ENGINE ---
 s_gen = solar_mw * 8760 * 0.20 
@@ -35,13 +35,13 @@ annual_reg_cost = reg_fee_total / 5
 annual_maint_fee = 180000        
 icx_issuance_fee = total_irecs * ISSUANCE_FEE_INR
 redemption_fee_total = total_irecs * (REDEMPTION_FEE_USD * USD_TO_INR)
-verification_audit = 50000      
+verification_audit = 10000      
 
 # B. Totals
 gross_revenue = total_irecs * irec_price_inr
 total_op_costs = annual_reg_cost + annual_maint_fee + icx_issuance_fee + redemption_fee_total + verification_audit
 
-# C. Consultancy Success Fee Calculation
+# C. Triara CAP Success Fee Calculation
 net_pre_fee = gross_revenue - total_op_costs
 my_fee = net_pre_fee * (fee_pct / 100)
 total_annual_expenses = total_op_costs + my_fee
@@ -72,7 +72,7 @@ cost_items = [
     "Issuance Fee (ICX)", 
     "Redemption Fee (Registry)", 
     "Independent Verification Audit", 
-    "Consultancy Success Fee"
+    "Triara CAP's Success Fee"
 ]
 costs_inr = [annual_reg_cost, annual_maint_fee, icx_issuance_fee, redemption_fee_total, verification_audit, my_fee]
 per_irec = [c / total_irecs for c in costs_inr]
