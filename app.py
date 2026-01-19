@@ -21,71 +21,63 @@ st.sidebar.header("3. Service Structure")
 fee_pct = st.sidebar.slider("Your Success Fee (%)", 0, 20, 10)
 
 # --- CALCULATIONS ---
-s_gen = solar_mw * 8760 * 0.20  # Solar Generation
-w_gen = wind_mw * 8760 * 0.35   # Wind Generation
+# 1. Generation
+s_gen = solar_mw * 8760 * 0.20 
+w_gen = wind_mw * 8760 * 0.35  
 total_recs = s_gen + w_gen
 
-# Revenue
+# 2. Revenue
 gross_rev = (s_gen * sol_p) + (w_gen * win_p)
 
-# Detailed Regulatory Costs (2026 Estimates)
-annual_acct_fee = 180000        # Approx €2,000 Annual Maintenance
-reg_fee_amortized = 17800       # Registration fee (89k / 5 years)
-issuance_costs = total_recs * 3 # Avg ₹3 per REC
-total_reg_costs = annual_acct_fee + reg_fee_amortized + issuance_costs
+# 3. 2026 REGULATORY COSTS (I-TRACK / GCC / ICX)
+# One-time Project Registration (Valid for 5 years)
+one_time_reg_fee = 89000 if (solar_mw + wind_mw) > 3 else 44500
+annual_amortized_reg = one_time_reg_fee / 5
 
-# Consultancy Fee
-my_fee = (gross_rev - total_reg_costs) * (fee_pct / 100)
-client_final = gross_rev - total_reg_costs - my_fee
+# Annual Maintenance Fee (Registry level)
+annual_maintenance = 180000 
+
+# Issuance Fee (Variable based on MWh)
+issuance_rate = 3.50 
+total_issuance_cost = total_recs * issuance_rate
+
+total_reg_costs_annual = annual_maintenance + annual_amortized_reg + total_issuance_cost
+
+# 4. Final Profits
+net_before_consultancy = gross_rev - total_reg_costs_annual
+my_fee = net_before_consultancy * (fee_pct / 100)
+client_final = net_before_consultancy - my_fee
 
 # --- DASHBOARD DISPLAY ---
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Annual I-RECs", f"{int(total_recs):,}")
 m2.metric("Gross Revenue", f"₹{int(gross_rev):,}")
-m3.metric("Total Fees/Costs", f"₹{int(total_reg_costs + my_fee):,}")
+m3.metric("Annual Regulatory Cost", f"₹{int(total_reg_costs_annual):,}")
 m4.metric("Net Client Profit", f"₹{int(client_final):,}")
 
 st.markdown("---")
 
-# --- COST BREAKDOWN SECTION ---
-st.subheader("📊 Transparency: Where do the costs go?")
-col_a, col_b = st.columns(2)
+# --- COST BREAKDOWN ---
+st.subheader("📊 Detailed Expenditure Analysis")
+c1, c2 = st.columns(2)
 
-with col_a:
-    st.write("**Mandatory Registry Charges (Fixed & Variable)**")
-    cost_data = {
-        "Item": ["Annual Maintenance (I-TRACK)", "Project Registration (Amortized)", "Issuance Fees (per MWh)"],
-        "Amount (INR)": [f"₹{int(annual_acct_fee):,}", f"₹{int(reg_fee_amortized):,}", f"₹{int(issuance_costs):,}"]
+with c1:
+    st.info("**Regulatory & Registry Charges**")
+    cost_breakdown = {
+        "Cost Item": ["One-time Project Registration", "Annual Maintenance Fee", "Issuance Fee (per MWh)"],
+        "Amount (INR)": [f"₹{int(one_time_reg_fee):,}", f"₹{int(annual_maintenance):,}", f"₹{issuance_rate}/MWh"],
+        "Frequency": ["Every 5 Years", "Annual", "Monthly"]
     }
-    st.table(pd.DataFrame(cost_data))
+    st.table(pd.DataFrame(cost_breakdown))
 
-with col_b:
-    st.write("**Professional Service Fees**")
-    st.info(f"Your project's compliance and monetization are managed for a success fee of {fee_pct}%.")
-    st.write(f"**Management Fee:** ₹{int(my_fee):,}")
-    st.write("**Net Take-Home for Client:**")
-    st.title(f"₹{int(client_final):,}")
+with c2:
+    st.info("**Consultancy & Success Fee**")
+    st.write(f"Based on your {fee_pct}% performance structure:")
+    st.write(f"**Your Management Fee:** ₹{int(my_fee):,}")
+    st.write("---")
+    st.write("**Total Annualized Overhead:**")
+    st.title(f"₹{int(total_reg_costs_annual + my_fee):,}")
 
 # Charts
 fig = px.pie(values=[s_gen * sol_p, w_gen * win_p], names=['Solar Revenue', 'Wind Revenue'], 
-             hole=0.4, title="Revenue Composition", color_discrete_sequence=['#f9d71c', '#87ceeb'])
-st.plotly_chart(fig, use_container_width=True)
-
-# --- PDF GENERATION ---
-def create_pdf():
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Helvetica", "B", 16)
-    pdf.cell(0, 10, f"I-REC Valuation: {proj_name}", ln=True, align="C")
-    pdf.set_font("Helvetica", "", 12)
-    pdf.ln(10)
-    pdf.cell(0, 10, f"Total I-RECs: {int(total_recs):,} MWh", ln=True)
-    pdf.cell(0, 10, f"Total Regulatory Costs: INR {int(total_reg_costs):,}", ln=True)
-    pdf.cell(0, 10, f"Your Management Fee: INR {int(my_fee):,}", ln=True)
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 15, f"NET ANNUAL PROFIT: INR {int(client_final):,}", ln=True)
-    return bytes(pdf.output())
-
-if st.button("Download Executive Summary PDF"):
-    pdf_bytes = create_pdf()
-    st.download_button("Download Now", data=pdf_bytes, file_name="Report.pdf", mime="application/pdf")
+             hole=0.4, title
