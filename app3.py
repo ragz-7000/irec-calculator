@@ -6,7 +6,7 @@ from fpdf import FPDF
 # Page Configuration
 st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
 
-# --- 1. CONFIGURATION & CURRENCY ---
+# --- 1. CONFIGURATION & CURRENCY (JAN 2026) ---
 USD_TO_INR = 90.95 
 REDEMPTION_FEE_USD = 0.07  
 ISSUANCE_FEE_INR = 2.25    
@@ -18,7 +18,6 @@ solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=10.0)
 wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=15.0)
 
 st.sidebar.header("💹 Market Dynamics")
-# Variable I-REC Price to show variations live
 irec_price_usd = st.sidebar.slider("I-REC Sale Price (USD)", 0.20, 1.50, 0.50, 0.05)
 irec_price_inr = irec_price_usd * USD_TO_INR
 
@@ -51,15 +50,16 @@ client_net_profit = gross_revenue - total_annual_expenses
 # --- 4. DASHBOARD UI ---
 st.title(f"🚀 I-REC Valuation Dashboard: {proj_name}")
 
-# Corrected Currency Symbols in Assumption Header
+# Corrected Currency Symbols Header
 st.info(f"Assumptions: Sale Price **${irec_price_usd:.2f}** | Redemption Fee **${REDEMPTION_FEE_USD:.2f}** | Exch Rate **₹{USD_TO_INR}**")
 
-# Top Metrics Reorganized
-m1, m2, m3, m4 = st.columns(4)
+# Top Metrics Reorganized (Including Total Expenses)
+m1, m2, m3, m4, m5 = st.columns(5)
 m1.metric("Project Capacity", f"{solar_mw + wind_mw} MW")
-m2.metric("Total I-RECs Generated", f"{int(total_irecs):,}")
-m3.metric("Total Revenue (INR)", f"₹{int(gross_revenue):,}")
-m4.metric("Net Client Profit (INR)", f"₹{int(client_net_profit):,}")
+m2.metric("Total I-RECs", f"{int(total_irecs):,}")
+m3.metric("Total Revenue", f"₹{int(gross_revenue):,}")
+m4.metric("Total Expenses", f"₹{int(total_annual_expenses):,}")
+m5.metric("Net Client Profit", f"₹{int(client_net_profit):,}")
 
 st.markdown("---")
 
@@ -95,7 +95,7 @@ st.markdown("---")
 c_left, c_right = st.columns(2)
 
 with c_left:
-    st.subheader("Profit vs. Expense Distribution")
+    st.subheader("Financial Distribution")
     fig_pie = px.pie(
         values=[float(total_annual_expenses), float(client_net_profit)], 
         names=['Total Costs & Fees', 'Net Client Profit'],
@@ -114,27 +114,21 @@ with c_right:
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
-# --- 7. PDF EXPORT (REWRITTEN FOR SYNTAX SAFETY) ---
+# --- 7. PDF EXPORT (STRICT SYNTAX) ---
 def create_pdf():
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 16)
-    
-    # Header
     pdf.cell(w=0, h=15, txt=f"I-REC Commercial Valuation: {proj_name}", ln=True, align='C')
     pdf.ln(10)
-    
-    # Content
     pdf.set_font("Arial", "", 12)
     pdf.cell(w=0, h=10, txt=f"I-REC Sale Price: ${irec_price_usd:.2f} (INR {irec_price_inr:.2f})", ln=True)
-    pdf.cell(w=0, h=10, txt=f"Annual I-REC Volume: {int(total_irecs):,} Units", ln=True)
-    pdf.cell(w=0, h=10, txt=f"Total Annual Revenue: INR {int(gross_revenue):,}", ln=True)
-    pdf.cell(w=0, h=10, txt=f"Total Annual Expenses: INR {int(total_annual_expenses):,}", ln=True)
-    
-    pdf.ln(10)
+    pdf.cell(w=0, h=10, txt=f"Total I-REC Volume: {int(total_irecs):,} Units", ln=True)
+    pdf.cell(w=0, h=10, txt=f"Total Revenue: INR {int(gross_revenue):,}", ln=True)
+    pdf.cell(w=0, h=10, txt=f"Total Expenses & Fees: INR {int(total_annual_expenses):,}", ln=True)
+    pdf.ln(5)
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(w=0, h=10, txt=f"NET ANNUAL PROFIT: INR {int(client_net_profit):,}", ln=True)
-    
+    pdf.cell(w=0, h=10, txt=f"ESTIMATED NET ANNUAL PROFIT: INR {int(client_net_profit):,}", ln=True)
     return bytes(pdf.output())
 
 st.sidebar.markdown("---")
@@ -148,4 +142,4 @@ if st.sidebar.button("Export Professional Proposal"):
             mime="application/pdf"
         )
     except Exception as e:
-        st.sidebar.error(f"PDF Error: {e}")
+        st.sidebar.error(f"Error: {e}")
