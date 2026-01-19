@@ -7,7 +7,6 @@ from fpdf import FPDF
 st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
 
 # --- 1. CONFIGURATION & CURRENCY ---
-# Using Jan 2026 Live Exchange Rate: 1 USD = 90.95 INR
 USD_TO_INR = 90.95 
 
 # --- 2. SIDEBAR INPUTS ---
@@ -17,7 +16,7 @@ solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=10.0)
 wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=15.0)
 
 st.sidebar.header("💹 Market Dynamics")
-# Variable I-REC Price (USD) to show variations
+# Variable I-REC Price (USD) to see variations
 irec_price_usd = st.sidebar.slider("I-REC Sale Price (USD)", 0.20, 1.50, 0.50, 0.05)
 irec_price_inr = irec_price_usd * USD_TO_INR
 
@@ -25,17 +24,16 @@ st.sidebar.header("💼 Service Parameters")
 fee_pct = st.sidebar.slider("Consultancy Success Fee (%)", 0, 20, 10)
 
 # --- 3. THE COMPLETE COST & REVENUE ENGINE ---
-# Generation (MWh)
-s_gen = solar_mw * 8760 * 0.20 # Solar 20% CUF
-w_gen = wind_mw * 8760 * 0.35  # Wind 35% CUF
+s_gen = solar_mw * 8760 * 0.20 
+w_gen = wind_mw * 8760 * 0.35  
 total_irecs = s_gen + w_gen
 
 # A. Fixed & Variable Regulatory Costs (INR)
 reg_fee_total = 89000 if (solar_mw + wind_mw) > 3 else 44500
 annual_reg_cost = reg_fee_total / 5
 annual_maint_fee = 180000        
-icx_issuance_fee = total_irecs * 2.25 # ICX Standard Rate
-redemption_fee = total_irecs * 7.00   # 2026 Retirement Fee
+icx_issuance_fee = total_irecs * 2.25 
+redemption_fee = total_irecs * 7.00   
 verification_audit = 50000      
 
 # B. Totals
@@ -58,6 +56,8 @@ m1.metric("Project Capacity", f"{solar_mw + wind_mw} MW")
 m2.metric("Annual I-RECs", f"{int(total_irecs):,}")
 m3.metric("Total Annual Expenses", f"₹{int(total_annual_expenses):,}")
 m4.metric("Net Client Profit", f"₹{int(client_net_profit):,}")
+
+st.markdown("---")
 
 # --- 5. COMPREHENSIVE COST TABLE ---
 st.subheader("📋 Detailed Expenditure & Fee Schedule")
@@ -85,6 +85,46 @@ c_left, c_right = st.columns(2)
 
 with c_left:
     st.subheader("Profit vs. Expense Ratio")
+    # Fixed Pie Chart Logic
+    pie_values = [float(total_annual_expenses), float(client_net_profit)]
+    pie_names = ['Total Expenses', 'Net Client Profit']
     fig_pie = px.pie(
-        values=[total_annual_expenses, client_net_profit], 
-        names=['
+        values=pie_values, 
+        names=pie_names,
+        hole=0.4,
+        color_discrete_sequence=['#E74C3C', '#2ECC71']
+    )
+    st.plotly_chart(fig_pie, use_container_width=True)
+
+with c_right:
+    st.subheader("Revenue Benchmarking (INR)")
+    fig_bar = px.bar(
+        x=["Gross Revenue", "Total Expenses", "Net Profit"],
+        y=[gross_revenue, total_annual_expenses, client_net_profit],
+        color=["Revenue", "Expense", "Profit"],
+        text_auto='.2s'
+    )
+    st.plotly_chart(fig_bar, use_container_width=True)
+
+# --- 7. PDF EXPORT ---
+def create_pdf():
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0, 15, f"I-REC Commercial Valuation: {proj_name}", ln=True, align='C')
+    pdf.set_font("Arial", "", 12)
+    pdf.ln(10)
+    pdf.cell(0, 10, f"Assumption: I-REC Price at ${irec_price_usd:.2f} (INR {irec_price_inr:.2f})", ln=True)
+    pdf.cell(0, 10, f"Annual I-REC Volume: {int(total_irecs):,} Units", ln=True)
+    pdf.cell(0, 10, f"Net Annual Profit: INR {int(client_net_profit):,}", ln=True)
+    return bytes(pdf.output())
+
+st.sidebar.markdown("---")
+if st.sidebar.button("Export Professional Proposal"):
+    pdf_data = create_pdf()
+    st.sidebar.download_button(
+        label="Download PDF Now",
+        data=pdf_data,
+        file_name=f"IREC_Proposal_{proj_name}.pdf",
+        mime="application/pdf"
+    )
