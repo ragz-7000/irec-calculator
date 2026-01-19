@@ -41,7 +41,7 @@ verification_audit = 50000
 gross_revenue = total_irecs * irec_price_inr
 total_op_costs = annual_reg_cost + annual_maint_fee + icx_issuance_fee + redemption_fee_total + verification_audit
 
-# C. Consultancy Success Fee (Calculated on Net Revenue)
+# C. Consultancy Success Fee Calculation
 net_pre_fee = gross_revenue - total_op_costs
 my_fee = net_pre_fee * (fee_pct / 100)
 total_annual_expenses = total_op_costs + my_fee
@@ -50,10 +50,10 @@ client_net_profit = gross_revenue - total_annual_expenses
 # --- 4. DASHBOARD UI ---
 st.title(f"🚀 I-REC Valuation Dashboard: {proj_name}")
 
-# Corrected Currency Symbols Header
-st.info(f"Assumptions: Sale Price **${irec_price_usd:.2f}** | Redemption Fee **${REDEMPTION_FEE_USD:.2f}** | Exch Rate **₹{USD_TO_INR}**")
+# CLEANED ASSUMPTION HEADER
+st.info(f"Assumptions: Sale Price ${irec_price_usd:.2f}  |  Redemption Fee ${REDEMPTION_FEE_USD:.2f}  |  Exch Rate ₹{USD_TO_INR}")
 
-# Top Metrics Reorganized (Including Total Expenses)
+# Top Metrics (5 Columns to include Total Expenses)
 m1, m2, m3, m4, m5 = st.columns(5)
 m1.metric("Project Capacity", f"{solar_mw + wind_mw} MW")
 m2.metric("Total I-RECs", f"{int(total_irecs):,}")
@@ -114,7 +114,7 @@ with c_right:
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
-# --- 7. PDF EXPORT (STRICT SYNTAX) ---
+# --- 7. PDF EXPORT ---
 def create_pdf():
     pdf = FPDF()
     pdf.add_page()
