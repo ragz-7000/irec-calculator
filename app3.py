@@ -48,7 +48,7 @@ total_annual_expenses = total_op_costs + my_fee
 client_net_profit = gross_revenue - total_annual_expenses
 
 # --- 4. DASHBOARD UI ---
-st.title(f"🚀 I-REC Valuation Dashboard for Aditya Birla Renewables: {proj_name}")
+st.title(f"🚀 I-REC Valuation Dashboard for Aditya Birla Renewables")
 
 # CLEANED ASSUMPTION HEADER
 st.info(f"Assumptions: Sale Price ${irec_price_usd:.2f}  |  Redemption Fee ${REDEMPTION_FEE_USD:.2f}  |  Exch Rate ₹{USD_TO_INR}")
