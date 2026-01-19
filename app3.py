@@ -6,7 +6,7 @@ from fpdf import FPDF
 # Page Configuration
 st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
 
-# --- 1. CONFIGURATION & CURRENCY (JAN 2026) ---
+# --- 1. CONFIGURATION & CURRENCY ---
 USD_TO_INR = 90.95 
 REDEMPTION_FEE_USD = 0.07  
 ISSUANCE_FEE_INR = 2.25    
@@ -42,7 +42,7 @@ verification_audit = 50000
 gross_revenue = total_irecs * irec_price_inr
 total_op_costs = annual_reg_cost + annual_maint_fee + icx_issuance_fee + redemption_fee_total + verification_audit
 
-# C. Success Fee (Calculated on Net Revenue)
+# C. Consultancy Success Fee (Calculated on Net Revenue)
 net_pre_fee = gross_revenue - total_op_costs
 my_fee = net_pre_fee * (fee_pct / 100)
 total_annual_expenses = total_op_costs + my_fee
@@ -66,8 +66,14 @@ st.markdown("---")
 # --- 5. COMPREHENSIVE COST TABLE ---
 st.subheader("📋 Detailed Expenditure & Fee Schedule")
 
-# Replaced Professional Management Fee with Consultancy Success Fee
-cost_items = ["Registry Registration (Amortized)", "Registry Maintenance (Annual)", "Issuance Fee (ICX)", "Redemption Fee (Registry)", "Independent Verification Audit", "Consultancy Success Fee"]
+cost_items = [
+    "Registry Registration (Amortized)", 
+    "Registry Maintenance (Annual)", 
+    "Issuance Fee (ICX)", 
+    "Redemption Fee (Registry)", 
+    "Independent Verification Audit", 
+    "Consultancy Success Fee"
+]
 costs_inr = [annual_reg_cost, annual_maint_fee, icx_issuance_fee, redemption_fee_total, verification_audit, my_fee]
 per_irec = [c / total_irecs for c in costs_inr]
 
@@ -108,14 +114,38 @@ with c_right:
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
-# --- 7. PDF EXPORT ---
+# --- 7. PDF EXPORT (REWRITTEN FOR SYNTAX SAFETY) ---
 def create_pdf():
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 15, f"I-REC Commercial Valuation: {proj_name}", ln=True, align='C')
-    pdf.set_font("Arial", "", 12)
+    
+    # Header
+    pdf.cell(w=0, h=15, txt=f"I-REC Commercial Valuation: {proj_name}", ln=True, align='C')
     pdf.ln(10)
-    pdf.cell(0, 10, f"I-REC Sale Price: ${irec_price_usd:.2f} (INR {irec_price_inr:.2f})", ln=True)
-    pdf.cell(0, 10, f"Annual I-REC Volume: {int(total_irecs):,} Units", ln=True)
-    pdf.cell(0, 10
+    
+    # Content
+    pdf.set_font("Arial", "", 12)
+    pdf.cell(w=0, h=10, txt=f"I-REC Sale Price: ${irec_price_usd:.2f} (INR {irec_price_inr:.2f})", ln=True)
+    pdf.cell(w=0, h=10, txt=f"Annual I-REC Volume: {int(total_irecs):,} Units", ln=True)
+    pdf.cell(w=0, h=10, txt=f"Total Annual Revenue: INR {int(gross_revenue):,}", ln=True)
+    pdf.cell(w=0, h=10, txt=f"Total Annual Expenses: INR {int(total_annual_expenses):,}", ln=True)
+    
+    pdf.ln(10)
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(w=0, h=10, txt=f"NET ANNUAL PROFIT: INR {int(client_net_profit):,}", ln=True)
+    
+    return bytes(pdf.output())
+
+st.sidebar.markdown("---")
+if st.sidebar.button("Export Professional Proposal"):
+    try:
+        pdf_bytes = create_pdf()
+        st.sidebar.download_button(
+            label="Download PDF Report",
+            data=pdf_bytes,
+            file_name=f"IREC_Proposal_{proj_name}.pdf",
+            mime="application/pdf"
+        )
+    except Exception as e:
+        st.sidebar.error(f"PDF Error: {e}")
