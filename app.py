@@ -4,102 +4,82 @@ import plotly.express as px
 from fpdf import FPDF
 
 # Page Configuration
-st.set_page_config(page_title="I-REC Hybrid Dashboard", layout="wide")
+st.set_page_config(page_title="I-REC Hybrid Asset Manager", layout="wide")
 
-# --- SIDEBAR: INPUTS ---
-st.sidebar.header("1. Project Config")
-proj_name = st.sidebar.text_input("Project Name", "Hybrid Project Alpha")
-solar_mw = st.sidebar.number_input("Solar (MW)", value=10.0)
-wind_mw = st.sidebar.number_input("Wind (MW)", value=15.0)
+# --- INPUTS ---
+st.sidebar.header("1. Project Details")
+proj_name = st.sidebar.text_input("Project Name", "Hybrid Wind-Solar India")
+solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=10.0)
+wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=15.0)
 
-st.sidebar.header("2. ICX & Registry Costs")
-icx_issuance_rate = st.sidebar.number_input("ICX Issuance Fee (INR/MWh)", value=2.25)
-fee_pct = st.sidebar.slider("Your Success Fee (%)", 0, 20, 10)
+st.sidebar.header("2. Revenue Assumptions")
+rec_price = st.sidebar.slider("Expected I-REC Price (INR/MWh)", 30, 100, 60)
 
-# --- CALCULATIONS ---
+st.sidebar.header("3. Service & Success Fee")
+fee_pct = st.sidebar.slider("Consultancy Fee (%)", 0, 20, 10)
+
+# --- THE EXHAUSTIVE COST ENGINE (2026 RATES) ---
+# Generation (MWh)
 s_gen = solar_mw * 8760 * 0.20 
 w_gen = wind_mw * 8760 * 0.35  
-total_recs = s_gen + w_gen
+total_mwh = s_gen + w_gen
 
-# Revenue Assumptions
-gross_rev = (s_gen * 65) + (w_gen * 55) # Hardcoded avg prices for clarity
+# A. One-Time Setup Costs (Amortized over 5 years)
+reg_fee_total = 89000 if (solar_mw + wind_mw) > 3 else 44500
+annual_reg_cost = reg_fee_total / 5
 
-# Registration Fees
-one_time_reg = 89000 if (solar_mw + wind_mw) > 3 else 44500
-annual_maintenance = 180000 
-issuance_cost = total_recs * icx_issuance_rate
-total_costs = annual_maintenance + (one_time_reg / 5) + issuance_cost
+# B. Recurring Fixed Costs
+annual_maint_fee = 180000 # Paid to I-TRACK (Registry)
+verification_audit = 50000 # Independent audit of meters/COD
 
-# Final Net
-net_revenue = gross_rev - total_costs
-my_fee = net_revenue * (fee_pct / 100)
-client_final = net_revenue - my_fee
+# C. Recurring Variable Costs
+icx_issuance_fee = total_mwh * 2.25 # Paid to ICX (Issuer)
+redemption_fee = total_mwh * 0.50 # Standard retirement fee estimate
 
-# --- DASHBOARD LAYOUT ---
-st.title(f"📊 I-REC Strategy: {proj_name}")
-m1, m2, m3 = st.columns(3)
-m1.metric("Annual Certificates", f"{int(total_recs):,} MWh")
-m2.metric("Est. Gross Revenue", f"₹{int(gross_rev):,}")
-m3.metric("Net Client Profit", f"₹{int(client_final):,}")
+total_operating_costs = annual_reg_cost + annual_maint_fee + verification_audit + icx_issuance_fee + redemption_fee
 
-# --- REVENUE CHART ---
+# D. Professional Fees
+gross_revenue = total_mwh * rec_price
+net_pre_fee = gross_revenue - total_operating_costs
+consultancy_fee = net_pre_fee * (fee_pct / 100)
+client_final_profit = net_pre_fee - consultancy_fee
+
+# --- DASHBOARD UI ---
+st.title(f"💼 I-REC Full-Cycle Commercial Model: {proj_name}")
 st.markdown("---")
-fig = px.pie(
-    values=[s_gen * 65, w_gen * 55], 
-    names=['Solar Revenue', 'Wind Revenue'], 
-    hole=0.4, 
-    title="Annual Revenue Composition",
-    color_discrete_sequence=['#f9d71c', '#87ceeb']
-)
-st.plotly_chart(fig, use_container_width=True)
 
-# --- PDF GENERATION FUNCTION ---
-def generate_custom_pdf():
+# Metrics
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Annual Generation", f"{int(total_mwh):,} MWh")
+c2.metric("Gross Annual Revenue", f"₹{int(gross_revenue):,}")
+c3.metric("Total Compliance Costs", f"₹{int(total_operating_costs):,}")
+c4.metric("Net Client Profit", f"₹{int(client_final_profit):,}")
+
+# Cost Breakdown Table
+st.subheader("📋 Comprehensive Cost Breakdown (Annualized)")
+detailed_costs = {
+    "Expense Category": ["Registry Registration (Amortized)", "Annual Registry Maintenance", "Independent Audit/Verification", "ICX Issuance Fees (Variable)", "Redemption/Retirement Fees", "Professional Management Fee"],
+    "Entity Paid": ["I-TRACK", "I-TRACK", "Verifier", "ICX (Local Issuer)", "Registry", "Consultant"],
+    "Amount (INR)": [f"₹{int(annual_reg_cost):,}", f"₹{int(annual_maint_fee):,}", f"₹{int(verification_audit):,}", f"₹{int(icx_issuance_fee):,}", f"₹{int(redemption_fee):,}", f"₹{int(consultancy_fee):,}"]
+}
+st.table(pd.DataFrame(detailed_costs))
+
+# PDF EXPORT
+def create_full_pdf():
     pdf = FPDF()
-    # PAGE 1: Financial Summary
     pdf.add_page()
-    pdf.set_font("Helvetica", "B", 18)
-    pdf.cell(0, 15, "I-REC COMMERCIAL VALUATION", ln=True, align="C")
-    pdf.ln(5)
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.cell(100, 10, "Description", border=1)
-    pdf.cell(80, 10, "Value (Annualized)", border=1, ln=True)
-    pdf.set_font("Helvetica", "", 12)
-    pdf.cell(100, 10, "Total I-RECs (MWh)", border=1)
-    pdf.cell(80, 10, f"{int(total_recs):,}", border=1, ln=True)
-    pdf.cell(100, 10, "ICX Issuance Fees", border=1)
-    pdf.cell(80, 10, f"INR {int(issuance_cost):,}", border=1, ln=True)
-    pdf.cell(100, 10, "Registry Maintenance", border=1)
-    pdf.cell(80, 10, "INR 1,80,000", border=1, ln=True)
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0, 10, f"Full Commercial Proposal: {proj_name}", ln=True, align='C')
+    pdf.set_font("Arial", "", 12)
     pdf.ln(10)
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, f"FINAL CLIENT NET REVENUE: INR {int(client_final):,}", ln=True)
-    
-    # PAGE 2: Strategic Board Note
-    pdf.add_page()
-    pdf.set_font("Helvetica", "B", 16)
-    pdf.cell(0, 15, "EXECUTIVE BOARD NOTE", ln=True, align="L")
-    pdf.set_font("Helvetica", "", 11)
-    note_text = (
-        "Project Objective: To monetize the environmental attributes of the Hybrid Energy asset. "
-        "Key Advantage: I-RECs allow the project to realize a higher 'Green Premium' beyond simple power sales. "
-        "Global Standards: By registering under I-TRACK, the project gains eligibility to supply power "
-        "to global multinational corporations (MNCs) seeking Scope 2 carbon compliance in India."
-    )
-    pdf.multi_cell(0, 10, note_text)
+    for i in range(len(detailed_costs["Expense Category"])):
+        pdf.cell(100, 10, detailed_costs["Expense Category"][i], border=1)
+        pdf.cell(80, 10, detailed_costs["Amount (INR)"][i], border=1, ln=True)
+    pdf.ln(5)
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, f"ESTIMATED NET ANNUAL PROFIT: INR {int(client_final_profit):,}", ln=True)
     return bytes(pdf.output())
 
-# --- EXPORT BUTTON ---
-st.sidebar.markdown("---")
-if st.sidebar.button("Export Professional Proposal"):
-    try:
-        pdf_data = generate_custom_pdf()
-        st.sidebar.success("✅ Proposal Ready!")
-        st.sidebar.download_button(
-            label="📥 Download PDF",
-            data=pdf_data,
-            file_name=f"IREC_Proposal_{proj_name}.pdf",
-            mime="application/pdf"
-        )
-    except Exception as e:
-        st.error(f"Error: {e}")
+if st.button("Download Complete Cost-Revenue Report"):
+    pdf_bytes = create_full_pdf()
+    st.download_button("Download PDF", data=pdf_bytes, file_name="Full_IREC_Model.pdf")
