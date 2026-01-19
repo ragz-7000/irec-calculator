@@ -8,8 +8,8 @@ st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
 
 # --- 1. CONFIGURATION & CURRENCY (JAN 2026) ---
 USD_TO_INR = 90.95 
-REDEMPTION_FEE_USD = 0.07  # As per your latest data
-ISSUANCE_FEE_INR = 2.25    # Standard ICX rate for grid injection
+REDEMPTION_FEE_USD = 0.07  
+ISSUANCE_FEE_INR = 2.25    
 
 # --- 2. SIDEBAR INPUTS ---
 st.sidebar.header("📊 Project Configuration")
@@ -42,7 +42,7 @@ verification_audit = 50000
 gross_revenue = total_irecs * irec_price_inr
 total_op_costs = annual_reg_cost + annual_maint_fee + icx_issuance_fee + redemption_fee_total + verification_audit
 
-# C. Professional Fees & Final Profit
+# C. Success Fee (Calculated on Net Revenue)
 net_pre_fee = gross_revenue - total_op_costs
 my_fee = net_pre_fee * (fee_pct / 100)
 total_annual_expenses = total_op_costs + my_fee
@@ -50,21 +50,24 @@ client_net_profit = gross_revenue - total_annual_expenses
 
 # --- 4. DASHBOARD UI ---
 st.title(f"🚀 I-REC Valuation Dashboard: {proj_name}")
-st.write(f"Assumptions: Sale Price **${irec_price_usd:.2f}** | Redemption Fee **${REDEMPTION_FEE_USD:.2f}** | Exch Rate **₹{USD_TO_INR}**")
 
-# Top Metrics
+# Corrected Currency Symbols in Assumption Header
+st.info(f"Assumptions: Sale Price **${irec_price_usd:.2f}** | Redemption Fee **${REDEMPTION_FEE_USD:.2f}** | Exch Rate **₹{USD_TO_INR}**")
+
+# Top Metrics Reorganized
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Project Capacity", f"{solar_mw + wind_mw} MW")
 m2.metric("Total I-RECs Generated", f"{int(total_irecs):,}")
-m3.metric("Total Annual Expenses", f"₹{int(total_annual_expenses):,}")
-m4.metric("Net Client Profit", f"₹{int(client_net_profit):,}")
+m3.metric("Total Revenue (INR)", f"₹{int(gross_revenue):,}")
+m4.metric("Net Client Profit (INR)", f"₹{int(client_net_profit):,}")
 
 st.markdown("---")
 
 # --- 5. COMPREHENSIVE COST TABLE ---
 st.subheader("📋 Detailed Expenditure & Fee Schedule")
 
-cost_items = ["Registry Registration (Amortized)", "Registry Maintenance (Annual)", "Issuance Fee (ICX)", "Redemption Fee (Registry)", "Independent Audit Fee", "Professional Management Fee"]
+# Replaced Professional Management Fee with Consultancy Success Fee
+cost_items = ["Registry Registration (Amortized)", "Registry Maintenance (Annual)", "Issuance Fee (ICX)", "Redemption Fee (Registry)", "Independent Verification Audit", "Consultancy Success Fee"]
 costs_inr = [annual_reg_cost, annual_maint_fee, icx_issuance_fee, redemption_fee_total, verification_audit, my_fee]
 per_irec = [c / total_irecs for c in costs_inr]
 
@@ -115,15 +118,4 @@ def create_pdf():
     pdf.ln(10)
     pdf.cell(0, 10, f"I-REC Sale Price: ${irec_price_usd:.2f} (INR {irec_price_inr:.2f})", ln=True)
     pdf.cell(0, 10, f"Annual I-REC Volume: {int(total_irecs):,} Units", ln=True)
-    pdf.cell(0, 10, f"Net Annual Profit: INR {int(client_net_profit):,}", ln=True)
-    return bytes(pdf.output())
-
-st.sidebar.markdown("---")
-if st.sidebar.button("Export Professional Proposal"):
-    pdf_data = create_pdf()
-    st.sidebar.download_button(
-        label="Download PDF Report",
-        data=pdf_data,
-        file_name=f"IREC_Proposal_{proj_name}.pdf",
-        mime="application/pdf"
-    )
+    pdf.cell(0, 10
