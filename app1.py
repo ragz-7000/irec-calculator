@@ -17,10 +17,10 @@ st.markdown("""
     }
     /* Shrink the metric labels and values */
     [data-testid="stMetricValue"] {
-        font-size: 1.4rem !important;
+        font-size: 1rem !important;
     }
     [data-testid="stMetricLabel"] {
-        font-size: 0.9rem !important;
+        font-size: 1.2rem !important;
     }
     /* Reduce padding between elements for a tighter look */
     .block-container {
@@ -101,7 +101,7 @@ client_net_profit = gross_revenue - total_period_expenses
 st.title(f"🚀 I-REC Valuation Dashboard for Aditya Birla Renewables")
 
 # CLEANED ASSUMPTION HEADER
-st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | Period: {projection_years} Year(s) | Solar CUF: {solar_cuf*100}% | Wind CUF: {wind_cuf*100}% | EUR/INR: {EUR_TO_INR}")
+st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | Period: {projection_years} Year(s) | Solar CUF: {solar_cuf*100}% | Wind CUF: {wind_cuf*100}% | EUR/INR: {EUR_TO_INR} | USD/INR: {USD_TO_INR}")
 
 # Top Metrics
 m1, m2, m3, m4, m5 = st.columns(5)
