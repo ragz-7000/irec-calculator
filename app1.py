@@ -6,6 +6,29 @@ from fpdf import FPDF
 # Page Configuration
 st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
 
+# --- CUSTOM CSS FOR TEXT SIZES ---
+st.markdown("""
+    <style>
+    /* Shrink the main title */
+    h1 {
+        font-size: 1.8rem !important;
+        font-weight: 700;
+        padding-bottom: 0rem;
+    }
+    /* Shrink the metric labels and values */
+    [data-testid="stMetricValue"] {
+        font-size: 1.4rem !important;
+    }
+    [data-testid="stMetricLabel"] {
+        font-size: 0.9rem !important;
+    }
+    /* Reduce padding between elements for a tighter look */
+    .block-container {
+        padding-top: 2rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # --- 1. CONFIGURATION & CURRENCY (REVISED 2026 EUR v2) ---
 EUR_TO_INR = 98.45  
 USD_TO_INR = 90.95  
@@ -21,7 +44,7 @@ REGISTRATION_FEE_INR = 104110 * GST_RATE
 # --- 2. SIDEBAR INPUTS ---
 # This creates 3 columns: [Small Space, Your Logo, Large Space]
 # The middle number (2) controls the logo size. Decrease it to make it even smaller.
-left_co, cent_co, last_co = st.sidebar.columns([1, 2, 1])
+left_co, cent_co, last_co = st.sidebar.columns([1, 1.25, 1])
 
 with cent_co:
     st.sidebar.image("Triara_Logo.png") 
