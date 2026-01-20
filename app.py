@@ -18,6 +18,10 @@ proj_name = st.sidebar.text_input("Project Name", "Wind-Solar Hybrid Project")
 solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=100.0)
 wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=50.0)
 
+st.sidebar.header("⚙️ Capacity Utilization Factor (CUF)")
+solar_cuf = st.sidebar.slider("Solar CUF (%)", 15.0, 30.0, 20.0, 0.5) / 100
+wind_cuf = st.sidebar.slider("Wind CUF (%)", 25.0, 45.0, 35.0, 0.5) / 100
+
 st.sidebar.header("💹 Market Dynamics")
 irec_price_usd = st.sidebar.slider("I-REC Sale Price (USD)", 0.20, 1.20, 0.50, 0.05)
 irec_price_inr = irec_price_usd * USD_TO_INR
@@ -26,25 +30,18 @@ st.sidebar.header("💼 Service Parameters")
 fee_pct = st.sidebar.slider("Triara CAP's Success Fee (%)", 15, 25, 17)
 
 # --- 3. THE COMPLETE COST & REVENUE ENGINE ---
-s_gen = solar_mw * 8760 * 0.20 
-w_gen = wind_mw * 8760 * 0.35  
+# Generation logic updated to use dynamic CUF inputs
+s_gen = solar_mw * 8760 * solar_cuf 
+w_gen = wind_mw * 8760 * wind_cuf  
 total_irecs = s_gen + w_gen
 
 # A. Regulatory Costs (INR) - Updated for 2026 v2
-# Account Opening Fee (One-time amortized over 5 years for annual view)
 acc_opening_annual = (588.50 * USD_TO_INR) / 5 
-
-# Registration Fee: 1,04,110 (v2) + 18% GST (amortized over 5 years)
 reg_fee_total = 104110 * GST_RATE
 annual_reg_cost = reg_fee_total / 5
-
-# Annual Trade Account Maintenance: 2,354 USD (v2)
 annual_maint_fee = 2354 * USD_TO_INR        
-
 icx_issuance_fee = total_irecs * ISSUANCE_FEE_INR
 redemption_fee_total = total_irecs * (REDEMPTION_FEE_USD * USD_TO_INR)
-
-# Verification Audit: 10,000 + 18% GST
 verification_audit = 10000 * GST_RATE     
 
 # B. Totals
@@ -61,7 +58,7 @@ client_net_profit = gross_revenue - total_annual_expenses
 st.title(f"🚀 I-REC Valuation Dashboard for Aditya Birla Renewables")
 
 # CLEANED ASSUMPTION HEADER
-st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | Redemption Fee USD {REDEMPTION_FEE_USD} | Exch Rate ₹{USD_TO_INR} | Incl. 18% GST on Local Fees")
+st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | Solar CUF {solar_cuf*100}% | Wind CUF {wind_cuf*100}% | Exch Rate ₹{USD_TO_INR}")
 
 # Top Metrics
 m1, m2, m3, m4, m5 = st.columns(5)
