@@ -21,6 +21,7 @@ st.markdown("""
     }
     [data-testid="stMetricLabel"] {
         font-size: 1.2rem !important;
+        font-weight: 600;
     }
     /* Reduce padding between elements for a tighter look */
     .block-container {
