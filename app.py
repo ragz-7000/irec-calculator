@@ -64,7 +64,7 @@ client_net_profit = gross_revenue - total_annual_expenses
 # --- 4. DASHBOARD UI ---
 st.title(f"🚀 I-REC Valuation Dashboard for Aditya Birla Renewables")
 
-st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | EUR/INR: {EUR_TO_INR} | **Registry Fees in EUR** | Incl. 18% GST on Local Fees")
+st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | EUR/INR: {EUR_TO_INR} | USD/INR: {USD_TO_INR} | Incl. 18% GST on Local Fees")
 
 # Top Metrics
 m1, m2, m3, m4, m5 = st.columns(5)
