@@ -4,13 +4,21 @@ import plotly.express as px
 from fpdf import FPDF
 
 # Page Configuration
-st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
+st.set_page_config(page_title="I-REC Hybrid Asset Model | EUR Edition", layout="wide")
 
-# --- 1. CONFIGURATION & CURRENCY (UPDATED JAN 2026 v2) ---
-USD_TO_INR = 90.95 
-GST_RATE = 1.18  # 18% GST Multiplier
-REDEMPTION_FEE_USD = 0.08  # Revised v2 Global Rate
-ISSUANCE_FEE_INR = 2.60 * GST_RATE # Revised v2 + 18% GST
+# --- 1. CONFIGURATION & CURRENCY (UPDATED JAN 2026 v2 - EUR) ---
+EUR_TO_INR = 98.45  # Updated EUR/INR Exchange Rate
+USD_TO_INR = 90.95  
+GST_RATE = 1.18    # 18% GST Multiplier
+
+# Revised Global Fees in EUR (v2 Standards)
+ACC_OPENING_EUR = 500.00      
+ANNUAL_TRADE_ACC_EUR = 2000.00 
+REDEMPTION_FEE_EUR = 0.06     # Global Platform Operator Rate
+
+# Revised Local Fees (ICX India - INR)
+ISSUANCE_FEE_INR = 2.60 * GST_RATE 
+REGISTRATION_FEE_INR = 104110 * GST_RATE
 
 # --- 2. SIDEBAR INPUTS ---
 st.sidebar.header("📊 Project Configuration")
@@ -23,6 +31,7 @@ solar_cuf = st.sidebar.slider("Solar CUF (%)", 15.0, 30.0, 20.0, 0.5) / 100
 wind_cuf = st.sidebar.slider("Wind CUF (%)", 25.0, 45.0, 35.0, 0.5) / 100
 
 st.sidebar.header("💹 Market Dynamics")
+# Market price is still typically quoted in USD for global trading
 irec_price_usd = st.sidebar.slider("I-REC Sale Price (USD)", 0.20, 1.20, 0.50, 0.05)
 irec_price_inr = irec_price_usd * USD_TO_INR
 
@@ -30,18 +39,16 @@ st.sidebar.header("💼 Service Parameters")
 fee_pct = st.sidebar.slider("Triara CAP's Success Fee (%)", 15, 25, 17)
 
 # --- 3. THE COMPLETE COST & REVENUE ENGINE ---
-# Generation logic updated to use dynamic CUF inputs
 s_gen = solar_mw * 8760 * solar_cuf 
 w_gen = wind_mw * 8760 * wind_cuf  
 total_irecs = s_gen + w_gen
 
-# A. Regulatory Costs (INR) - Updated for 2026 v2
-acc_opening_annual = (588.50 * USD_TO_INR) / 5 
-reg_fee_total = 104110 * GST_RATE
-annual_reg_cost = reg_fee_total / 5
-annual_maint_fee = 2354 * USD_TO_INR        
+# A. Regulatory Costs (INR) - Calculated via EUR Base
+acc_opening_annual = (ACC_OPENING_EUR * EUR_TO_INR) / 5 
+annual_reg_cost = REGISTRATION_FEE_INR / 5
+annual_maint_fee = ANNUAL_TRADE_ACC_EUR * EUR_TO_INR        
 icx_issuance_fee = total_irecs * ISSUANCE_FEE_INR
-redemption_fee_total = total_irecs * (REDEMPTION_FEE_USD * USD_TO_INR)
+redemption_fee_total = total_irecs * (REDEMPTION_FEE_EUR * EUR_TO_INR)
 verification_audit = 10000 * GST_RATE     
 
 # B. Totals
@@ -57,8 +64,7 @@ client_net_profit = gross_revenue - total_annual_expenses
 # --- 4. DASHBOARD UI ---
 st.title(f"🚀 I-REC Valuation Dashboard for Aditya Birla Renewables")
 
-# CLEANED ASSUMPTION HEADER
-st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | Solar CUF {solar_cuf*100}% | Wind CUF {wind_cuf*100}% | Exch Rate ₹{USD_TO_INR}")
+st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | EUR/INR: {EUR_TO_INR} | **Registry Fees in EUR** | Incl. 18% GST on Local Fees")
 
 # Top Metrics
 m1, m2, m3, m4, m5 = st.columns(5)
@@ -74,21 +80,20 @@ st.markdown("---")
 st.subheader("📋 Detailed Expenditure & Fee Schedule")
 
 cost_items = [
-    "Registry Account Opening (Amortized)",
+    f"Registry Account Opening (Amortized €{ACC_OPENING_EUR/5})",
     "Registry Registration (Amortized + GST)", 
-    "Registry Maintenance (Annual)", 
+    f"Registry Maintenance (Annual €{ANNUAL_TRADE_ACC_EUR})", 
     "Issuance Fee (ICX + GST)", 
-    "Redemption Fee (Registry)", 
+    f"Redemption Fee (Registry €{REDEMPTION_FEE_EUR}/unit)", 
     "Independent Verification Audit (+ GST)", 
     "Triara CAP's Success Fee"
 ]
 costs_inr = [acc_opening_annual, annual_reg_cost, annual_maint_fee, icx_issuance_fee, redemption_fee_total, verification_audit, my_fee]
-per_irec = [c / total_irecs for c in costs_inr]
 
 df_data = pd.DataFrame({
     "Cost Component": cost_items,
     "Annual Expense (INR)": [f"₹{int(c):,}" for c in costs_inr],
-    "Cost per I-REC (INR)": [f"₹{c:.2f}" for c in per_irec]
+    "Cost per I-REC (INR)": [f"₹{c/total_irecs:.2f}" for c in costs_inr]
 })
 
 total_row = pd.DataFrame({
