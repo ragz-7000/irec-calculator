@@ -30,7 +30,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 1. CONFIGURATION & CURRENCY (REVISED 2026 EUR v2) ---
-EUR_TO_INR = 98.45  
+EUR_TO_INR = 106.17  
 USD_TO_INR = 90.95  
 GST_RATE = 1.18    
 
