@@ -21,7 +21,7 @@ st.markdown("""
     }
     [data-testid="stMetricLabel"] {
         font-size: 1.2rem !important;
-        font-weight: 600;
+        font-weight: 700;
     }
     /* Reduce padding between elements for a tighter look */
     .block-container {
@@ -45,7 +45,7 @@ REGISTRATION_FEE_INR = 104110 * GST_RATE
 # --- 2. SIDEBAR INPUTS ---
 # This creates 3 columns: [Small Space, Your Logo, Large Space]
 # The middle number (2) controls the logo size. Decrease it to make it even smaller.
-left_co, cent_co, last_co = st.sidebar.columns([1, 1.25, 1])
+left_co, cent_co, last_co = st.sidebar.columns([1, 0.5, 1])
 
 with cent_co:
     st.sidebar.image("Triara_Logo.png") 
