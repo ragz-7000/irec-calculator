@@ -4,123 +4,108 @@ import plotly.express as px
 from fpdf import FPDF
 
 # Page Configuration
-st.set_page_config(page_title="I-REC Hybrid Valuation v2", layout="wide")
+st.set_page_config(page_title="I-REC Multi-Year Valuation", layout="wide")
 
-# --- 1. 2026 v2 FEE CONSTANTS ---
-USD_TO_INR = 90.95 
-GST_RATE = 0.18
+# --- 1. CONFIGURATION & CURRENCY (EUR BASE) ---
+EUR_TO_INR = 98.45  
+USD_TO_INR = 90.95  
+GST_RATE = 1.18    
 
-# A. Global Registry Fees (I-TRACK Foundation - USD)
-# These are typically exempt from local GST but subject to RCM by the client.
-ACC_OPENING_USD = 588.50      # One-time
-ANNUAL_TRADE_ACC_USD = 2354.00 # Yearly Maintenance
-REDEMPTION_LEVY_USD = 0.08     # Global Platform Operator Fee (v2)
+# 2026 v2 Fees in EUR
+ACC_OPENING_EUR = 500.00      
+ANNUAL_TRADE_ACC_EUR = 2000.00 
+REDEMPTION_FEE_EUR = 0.06     
 
-# B. Local Issuer Fees (ICX India - INR) - Subject to 18% GST
-ICX_REG_BASE = 104110.00      # Registration for >3MW (5-year validity)
-ICX_ISSUANCE_BASE = 2.60       # Standard Issuance per MWh
-ICX_AUDIT_BASE = 10000.00      # Independent Verification Provision
+# Local ICX Fees (INR)
+ISSUANCE_FEE_INR = 2.60 * GST_RATE 
+REGISTRATION_FEE_INR = 104110 * GST_RATE
 
 # --- 2. SIDEBAR INPUTS ---
-st.sidebar.header("📊 Asset Configuration")
-proj_name = st.sidebar.text_input("Project Name", "ABR Hybrid 150MW")
+st.sidebar.header("📊 Project Configuration")
+proj_name = st.sidebar.text_input("Project Name", "ABR Hybrid Project")
 solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=100.0)
 wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=50.0)
 
-st.sidebar.header("💹 Market Assumptions")
+st.sidebar.header("⏳ Investment Horizon")
+projection_years = st.sidebar.slider("Projection Period (Years)", 1, 5, 5)
+
+st.sidebar.header("⚙️ CUF & Market")
+solar_cuf = st.sidebar.slider("Solar CUF (%)", 15.0, 30.0, 20.0) / 100
+wind_cuf = st.sidebar.slider("Wind CUF (%)", 25.0, 45.0, 35.0) / 100
 irec_price_usd = st.sidebar.slider("Sale Price (USD)", 0.20, 1.20, 0.50, 0.05)
 irec_price_inr = irec_price_usd * USD_TO_INR
 
-st.sidebar.header("💼 Triara CAP Commercials")
-fee_pct = st.sidebar.slider("Success Fee (%)", 15, 25, 17)
+st.sidebar.header("💼 Success Fee")
+fee_pct = st.sidebar.slider("Triara CAP's Fee (%)", 15, 25, 17)
 
-# --- 3. THE CALCULATION ENGINE ---
-total_irecs = (solar_mw * 8760 * 0.20) + (wind_mw * 8760 * 0.35)
+# --- 3. MULTI-YEAR CALCULATION ENGINE ---
+s_gen = solar_mw * 8760 * solar_cuf 
+w_gen = wind_mw * 8760 * wind_cuf  
+total_irecs_annual = s_gen + w_gen
 
-# 3.1 Global Registry Costs (INR)
-global_setup = ACC_OPENING_USD * USD_TO_INR
-global_maint = ANNUAL_TRADE_ACC_USD * USD_TO_INR
-global_redemption = total_irecs * REDEMPTION_LEVY_USD * USD_TO_INR
+# A. Fixed & One-Time Costs (Paid in Year 1)
+one_time_setup = (ACC_OPENING_EUR * EUR_TO_INR) + REGISTRATION_FEE_INR
 
-# 3.2 Local ICX Costs (INR + 18% GST)
-local_reg_annual = (ICX_REG_BASE / 5) * (1 + GST_RATE) # Amortized
-local_issuance = (total_irecs * ICX_ISSUANCE_BASE) * (1 + GST_RATE)
-local_audit = ICX_AUDIT_BASE * (1 + GST_RATE)
+# B. Recurring Annual Costs (Registry + Issuance + Redemption + Audit)
+annual_recurring = (ANNUAL_TRADE_ACC_EUR * EUR_TO_INR) + \
+                   (total_irecs_annual * ISSUANCE_FEE_INR) + \
+                   (total_irecs_annual * REDEMPTION_FEE_EUR * EUR_TO_INR) + \
+                   (10000 * GST_RATE)
 
-# 3.3 Summary Metrics
-gross_revenue = total_irecs * irec_price_inr
-total_compliance_costs = global_maint + global_redemption + local_reg_annual + local_issuance + local_audit
-net_pre_fee = gross_revenue - total_compliance_costs
-triara_success_fee = net_pre_fee * (fee_pct / 100)
-client_final_net = net_pre_fee - triara_success_fee
+# C. Multi-Year Totals
+total_revenue = (total_irecs_annual * irec_price_inr) * projection_years
+total_op_costs = one_time_setup + (annual_recurring * projection_years)
+
+# Success Fee on Net
+net_pre_fee = total_revenue - total_op_costs
+total_success_fee = net_pre_fee * (fee_pct / 100)
+net_client_profit = net_pre_fee - total_success_fee
 
 # --- 4. DASHBOARD UI ---
-st.title(f"🚀 I-REC Commercial Strategy for Aditya Birla Renewables")
-st.info(f"Market Benchmarks: Sale Price ${irec_price_usd:.2f} | Global Redemption ${REDEMPTION_LEVY_USD} | Local GST 18%")
+st.title(f"🚀 {projection_years}-Year I-REC Valuation for Aditya Birla Renewables")
 
-# Top Row Metrics
-c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("Annual I-RECs", f"{int(total_irecs):,}")
-c2.metric("Gross Revenue", f"₹{int(gross_revenue):,}")
-c3.metric("Total Expenses", f"₹{int(total_compliance_costs + triara_success_fee):,}")
-c4.metric("Triara Fee", f"₹{int(triara_success_fee):,}")
-c5.metric("Net Client Profit", f"₹{int(client_final_net):,}")
+st.info(f"Summary for {projection_years} Years: Year 1 absorbs one-time setup of ₹{int(one_time_setup):,} | Annual recurring ₹{int(annual_recurring):,}")
+
+# Top Metrics for the selected horizon
+m1, m2, m3, m4, m5 = st.columns(5)
+m1.metric("Selected Period", f"{projection_years} Years")
+m2.metric("Total I-RECs", f"{int(total_irecs_annual * projection_years):,}")
+m3.metric("Gross Revenue", f"₹{int(total_revenue):,}")
+m4.metric("Total Expenses", f"₹{int(total_op_costs + total_success_fee):,}")
+m5.metric("Net Client Profit", f"₹{int(net_client_profit):,}")
 
 st.markdown("---")
 
-# --- 5. DETAILED COST TABLE ---
-st.subheader("📋 Exhaustive 2026 v2 Compliance & Service Fee Schedule")
-cost_breakdown = pd.DataFrame({
-    "Category": ["Global Setup", "Global Maintenance", "Global Operational", "Local Setup", "Local Operational", "Local Compliance", "Service"],
-    "Cost Component": [
-        "Account Opening Fee (One-time)", 
-        "Annual Trade Account Fee", 
-        "Platform Operator Redemption Fee", 
-        "Asset Registration (Amortized + GST)", 
-        "Issuance Fees (ICX + GST)", 
-        "Independent Verification (+ GST)", 
-        "Triara CAP Success Fee"
-    ],
-    "Annual INR": [
-        global_setup, 
-        global_maint, 
-        global_redemption, 
-        local_reg_annual, 
-        local_issuance, 
-        local_audit, 
-        triara_success_fee
-    ]
-})
-cost_breakdown["Per I-REC"] = cost_breakdown["Annual INR"] / total_irecs
-st.table(cost_breakdown.style.format({"Annual INR": "₹{:,.0f}", "Per I-REC": "₹{:,.2f}"}))
+# --- 5. CASH FLOW TABLE ---
+st.subheader(f"📋 Projected Cash Flow Table ({projection_years} Years)")
 
-# --- 6. VISUAL ANALYSIS ---
-col_l, col_r = st.columns(2)
-with col_l:
-    fig_p = px.pie(values=[total_compliance_costs, triara_success_fee, client_final_net], 
-                   names=['Regulatory Costs', 'Triara Fee', 'Net Profit'],
-                   hole=0.4, color_discrete_sequence=['#ff4b4b', '#0066cc', '#00cc96'])
-    st.plotly_chart(fig_p, use_container_width=True)
-with col_r:
-    fig_b = px.bar(x=["Revenue", "Expenses", "Net Profit"], 
-                   y=[gross_revenue, (total_compliance_costs + triara_success_fee), client_final_net],
-                   color=["Revenue", "Expense", "Profit"], text_auto='.3s')
-    st.plotly_chart(fig_b, use_container_width=True)
+# Generate row-by-row data
+years_data = []
+for y in range(1, projection_years + 1):
+    y_rev = total_irecs_annual * irec_price_inr
+    y_costs = annual_recurring + (one_time_setup if y == 1 else 0)
+    y_net_pre = y_rev - y_costs
+    y_fee = y_net_pre * (fee_pct / 100)
+    y_profit = y_net_pre - y_fee
+    years_data.append([f"Year {y}", f"₹{int(y_rev):,}", f"₹{int(y_costs):,}", f"₹{int(y_profit):,}"])
 
-# --- 7. PDF EXPORT ---
-def create_pdf():
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 18)
-    pdf.cell(0, 15, "ADITYA BIRLA RENEWABLES: I-REC VALUATION", ln=True, align='C')
-    pdf.set_font("Arial", "", 12)
-    pdf.ln(10)
-    pdf.cell(0, 10, f"Annual Volume Projection: {int(total_irecs):,} MWh", ln=True)
-    pdf.cell(0, 10, f"Net Annualized Revenue: INR {int(client_final_net):,}", ln=True)
-    pdf.ln(5)
-    pdf.set_font("Arial", "I", 10)
-    pdf.multi_cell(0, 7, "Calculated based on I-TRACK Foundation Fee Structure 2026 v2. Local ICX fees include 18% GST.")
-    return bytes(pdf.output())
+df_cashflow = pd.DataFrame(years_data, columns=["Period", "Revenue", "Compliance Costs", "Net Profit"])
+st.table(df_cashflow)
 
-if st.sidebar.button("Export Board Proposal"):
-    st.sidebar.download_button("Download PDF", data=create_pdf(), file_name="ABR_IREC_Full_Proposal.pdf")
+# --- 6. VISUALIZATION ---
+st.markdown("---")
+st.subheader("📈 Cumulative Profit Growth")
+
+# Prepare cumulative data for graph
+cumulative_profit = []
+curr_p = 0
+for y in range(1, projection_years + 1):
+    y_rev = total_irecs_annual * irec_price_inr
+    y_costs = annual_recurring + (one_time_setup if y == 1 else 0)
+    y_profit = (y_rev - y_costs) * (1 - fee_pct/100)
+    curr_p += y_profit
+    cumulative_profit.append({"Year": f"Year {y}", "Cumulative Profit": curr_p})
+
+fig_line = px.line(cumulative_profit, x="Year", y="Cumulative Profit", markers=True, 
+                   title=f"Cumulative Net Profit over {projection_years} Years")
+st.plotly_chart(fig_line, use_container_width=True)
