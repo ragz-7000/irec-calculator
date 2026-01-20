@@ -4,132 +4,116 @@ import plotly.express as px
 from fpdf import FPDF
 
 # Page Configuration
-st.set_page_config(page_title="I-REC Hybrid Asset Manager", layout="wide")
+st.set_page_config(page_title="Triara CAP | ABR I-REC Projection", layout="wide")
 
-# --- 1. CONFIGURATION & CONSTANTS ---
-# Using January 2026 Live Exchange Rate: 1 USD = 90.95 INR
+# --- 1. 2026 v2 FEE CONSTANTS ---
 USD_TO_INR = 90.95 
+GST_RATE = 0.18
 
-# I-REC Sale Price (as per your requirement: 0.50 USD)
-irec_price_usd = 0.50
-irec_price_inr = irec_price_usd * USD_TO_INR
+ACC_OPENING_USD = 588.50      
+ANNUAL_TRADE_ACC_USD = 2354.00 
+REDEMPTION_LEVY_USD = 0.08     
+ICX_REG_BASE = 104110.00      
+ICX_ISSUANCE_BASE = 2.60       
+ICX_AUDIT_BASE = 10000.00
 
-# --- 2. SIDEBAR INPUTS ---
-st.sidebar.header("📊 Project Configuration")
-proj_name = st.sidebar.text_input("Project Name", "Hybrid Wind-Solar Project")
-solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=10.0)
-wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=15.0)
+# --- 2. HEADER & LOGO ---
+col_logo, col_title = st.columns([1, 4])
+with col_logo:
+    # Placeholder for Triara CAP Logo - You can replace the URL with your actual logo path
+    st.image("https://via.placeholder.com/150x50.png?text=TRIARA+CAP", width=150)
 
-st.sidebar.header("💼 Service Parameters")
-fee_pct = st.sidebar.slider("Your Success Fee (%)", 0, 20, 10)
+with col_title:
+    st.title("🚀 I-REC 5-Year Strategic Valuation: Aditya Birla Renewables")
 
-# --- 3. THE COMPLETE COST & REVENUE ENGINE ---
-# Generation (MWh)
-s_gen = solar_mw * 8760 * 0.20 # Solar 20% CUF
-w_gen = wind_mw * 8760 * 0.35  # Wind 35% CUF
-total_irecs = s_gen + w_gen
+# --- 3. INPUTS & CONSTANTS ---
+solar_mw = 100.0
+wind_mw = 50.0
+total_irecs_annual = (solar_mw * 8760 * 0.20) + (wind_mw * 8760 * 0.35)
+fee_pct = 17.0
 
-# A. Regulatory & Issuance Costs (INR)
-reg_fee_total = 89000 if (solar_mw + wind_mw) > 3 else 44500
-annual_reg_cost = reg_fee_total / 5
-annual_maint_fee = 180000        # Paid to I-TRACK Registry
-icx_issuance_fee = total_irecs * 2.25 # Paid to ICX (Issuer)
-redemption_fee = total_irecs * 0.50   # Retirement charges
+# --- 4. SCENARIO CALCULATION ENGINE ---
+scenarios = [0.40, 0.50, 1.00]
+years = [1, 2, 3, 4, 5]
+data_list = []
 
-# B. Operational & Professional Costs
-verification_audit = 50000      # Third-party audit provision
-gross_revenue = total_irecs * irec_price_inr
+for price in scenarios:
+    price_inr = price * USD_TO_INR
+    cum_rev = 0
+    cum_exp = 0
+    cum_profit = 0
+    
+    for year in years:
+        # Global Fees
+        setup_cost = (ACC_OPENING_USD * USD_TO_INR) if year == 1 else 0
+        maint_cost = ANNUAL_TRADE_ACC_USD * USD_TO_INR
+        redemption_cost = total_irecs_annual * REDEMPTION_LEVY_USD * USD_TO_INR
+        
+        # Local Fees (Incl. 18% GST)
+        reg_cost = (ICX_REG_BASE * (1 + GST_RATE)) if year == 1 else 0
+        issuance_cost = (total_irecs_annual * ICX_ISSUANCE_BASE) * (1 + GST_RATE)
+        audit_cost = (ICX_AUDIT_BASE * (1 + GST_RATE))
+        
+        # Yearly Financials
+        y_rev = total_irecs_annual * price_inr
+        y_exp = setup_cost + maint_cost + redemption_cost + reg_cost + issuance_cost + audit_cost
+        
+        net_pre_fee = y_rev - y_exp
+        y_success_fee = net_pre_fee * (fee_pct / 100)
+        y_profit = net_pre_fee - y_success_fee
+        
+        # Track Totals
+        cum_rev += y_rev
+        cum_exp += (y_exp + y_success_fee)
+        cum_profit += y_profit
+        
+        data_list.append({
+            "Year": f"Year {year}",
+            "Scenario": f"${price} / I-REC",
+            "Profit": y_profit,
+            "Revenue": y_rev,
+            "Total Cost": y_exp + y_success_fee
+        })
+    
+    # Add the 5-Year Aggregate Row
+    data_list.append({
+        "Year": "5-Year Total",
+        "Scenario": f"${price} / I-REC",
+        "Profit": cum_profit,
+        "Revenue": cum_rev,
+        "Total Cost": cum_exp
+    })
 
-# Subtotal of Regulatory/Op Costs
-total_op_costs = annual_reg_cost + annual_maint_fee + icx_issuance_fee + redemption_fee + verification_audit
+df_master = pd.DataFrame(data_list)
 
-# C. Success Fee (Calculated on Net Revenue)
-net_pre_fee = gross_revenue - total_op_costs
-my_fee = net_pre_fee * (fee_pct / 100)
-total_annual_expenses = total_op_costs + my_fee
-client_net_profit = gross_revenue - total_annual_expenses
+# --- 5. VISUALIZATIONS ---
+st.subheader("📊 5-Year Net Profit Curve")
+df_plot = df_master[df_master["Year"] != "5-Year Total"]
+fig_line = px.line(df_plot, x="Year", y="Profit", color="Scenario", markers=True,
+                  title="Annual Net Profit Trend (Excl. Aggregates)")
+st.plotly_chart(fig_line, use_container_width=True)
 
-# --- 4. DASHBOARD UI ---
-st.title(f"🔋 Commercial Dashboard: {proj_name}")
-st.info(f"Market Assumption: I-REC Price = ${irec_price_usd} (₹{irec_price_inr:.2f}) | Exch Rate: ₹{USD_TO_INR}")
-
-# Top Metrics
-m1, m2, m3, m4 = st.columns(4)
-m1.metric("Annual Generation", f"{int(solar_mw + wind_mw)} MW")
-m2.metric("Total I-RECs", f"{int(total_irecs):,}")
-m3.metric("Total Annual Expenses", f"₹{int(total_annual_expenses):,}")
-m4.metric("Net Client Profit", f"₹{int(client_net_profit):,}")
-
-# --- 5. COMPREHENSIVE COST TABLE ---
-st.subheader("📋 Exhaustive Expenditure & Fee Schedule")
-
-# Create DataFrame for Table
-cost_items = [
-    "Registry Registration (Amortized)",
-    "Annual Registry Maintenance (I-TRACK)",
-    "ICX Issuance Fee (Variable)",
-    "Redemption/Retirement Fee",
-    "Independent Verification Audit",
-    "Professional Management Fee"
-]
-costs_inr = [annual_reg_cost, annual_maint_fee, icx_issuance_fee, redemption_fee, verification_audit, my_fee]
-per_irec = [c / total_irecs for c in costs_inr]
-
-df = pd.DataFrame({
-    "Cost Component": cost_items,
-    "Annual Expense (INR)": [f"₹{int(c):,}" for c in costs_inr],
-    "Cost per I-REC (INR)": [f"₹{c:.2f}" for c in per_irec]
-})
-
-# Add Total Row
-total_row = pd.DataFrame({
-    "Cost Component": ["**TOTAL ANNUAL EXPENSES**"],
-    "Annual Expense (INR)": [f"**₹{int(total_annual_expenses):,}**"],
-    "Cost per I-REC (INR)": [f"**₹{total_annual_expenses/total_irecs:.2f}**"]
-})
-final_df = pd.concat([df, total_row], ignore_index=True)
-
-st.table(final_df)
-
-# --- 6. VISUALIZATIONS ---
+# --- 6. SUMMARY TABLES ---
 st.markdown("---")
-c_left, c_right = st.columns(2)
+st.subheader("📋 Financial Performance Matrix (Detailed)")
 
-with c_left:
-    st.subheader("Financial Distribution")
-    fig_pie = px.pie(
-        values=[total_annual_expenses, client_net_profit], 
-        names=['Total Expenses (Fees/Reg)', 'Net Client Profit'],
-        hole=0.4,
-        color_discrete_sequence=['#FF4B4B', '#00CC96']
-    )
-    st.plotly_chart(fig_pie, use_container_width=True)
-
-with c_right:
-    st.subheader("Revenue vs Expenses")
-    fig_bar = px.bar(
-        x=["Gross Revenue", "Total Expenses", "Net Profit"],
-        y=[gross_revenue, total_annual_expenses, client_net_profit],
-        color=["Revenue", "Expense", "Profit"],
-        text_auto='.2s'
-    )
-    st.plotly_chart(fig_bar, use_container_width=True)
+# Separate Tables for clarity
+for sc in [f"${p} / I-REC" for p in scenarios]:
+    st.write(f"### Scenario: {sc}")
+    temp_df = df_master[df_master["Scenario"] == sc][["Year", "Revenue", "Total Cost", "Profit"]]
+    st.table(temp_df.set_index("Year").style.format("₹{:,.0f}"))
 
 # --- 7. PDF EXPORT ---
 def create_pdf():
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 15, f"I-REC Commercial Proposal: {proj_name}", ln=True, align='C')
-    pdf.set_font("Arial", "", 11)
-    pdf.ln(10)
-    pdf.cell(0, 10, f"Total I-RECs Generated: {int(total_irecs):,} Units", ln=True)
-    pdf.cell(0, 10, f"Total Annual Expenses: INR {int(total_annual_expenses):,}", ln=True)
-    pdf.cell(0, 10, f"Net Annual Profit: INR {int(client_net_profit):,}", ln=True)
+    pdf.cell(0, 15, "Triara CAP: 5-Year I-REC Valuation for ABR", ln=True, align='C')
+    pdf.set_font("Arial", "", 12)
     pdf.ln(5)
-    pdf.set_font("Arial", "I", 10)
-    pdf.multi_cell(0, 8, "Calculations based on $0.50/REC at a conversion rate of 90.95 INR/USD.")
+    pdf.cell(0, 10, f"Annual Volume: {int(total_irecs_annual):,}", ln=True)
+    pdf.cell(0, 10, "Summary: Includes all I-TRACK 2026 v2 global and local ICX fees (18% GST).", ln=True)
     return bytes(pdf.output())
 
-if st.button("Download Executive Summary Report"):
-    st.download_button("Download PDF", data=create_pdf(), file_name="IREC_Full_Report.pdf")
+if st.sidebar.button("Download Executive Proposal"):
+    st.sidebar.download_button("Download PDF", data=create_pdf(), file_name="Triara_ABR_5Year_Proposal.pdf")
