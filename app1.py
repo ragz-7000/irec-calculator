@@ -19,7 +19,12 @@ ISSUANCE_FEE_INR = 2.60 * GST_RATE
 REGISTRATION_FEE_INR = 104110 * GST_RATE
 
 # --- 2. SIDEBAR INPUTS ---
-st.sidebar.image("Triara_Logo.png")
+# This creates 3 columns: [Small Space, Your Logo, Large Space]
+# The middle number (2) controls the logo size. Decrease it to make it even smaller.
+left_co, cent_co, last_co = st.sidebar.columns([1, 2, 1])
+
+with cent_co:
+    st.sidebar.image("Triara_Logo.png") 
 
 st.sidebar.header("📊 Project Configuration")
 proj_name = st.sidebar.text_input("Project Name", "Wind-Solar Hybrid Project")
