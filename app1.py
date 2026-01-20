@@ -93,7 +93,7 @@ gross_revenue = total_irecs_period * irec_price_inr
 
 # C. Triara CAP Success Fee Calculation
 net_pre_fee = gross_revenue - total_op_costs
-my_fee = net_pre_fee * (fee_pct / 100)
+my_fee = net_pre_fee * (fee_pct / 100) * GST_RATE
 total_period_expenses = total_op_costs + my_fee
 client_net_profit = gross_revenue - total_period_expenses
 
@@ -123,7 +123,7 @@ cost_items = [
     "Issuance Fee (ICX + GST)", 
     "Redemption Fee (Registry)", 
     "Independent Verification Audit (+ GST)", 
-    "Triara CAP's Success Fee"
+    "Triara CAP's Success Fee (+GST)"
 ]
 
 # Calculating period costs for the table
