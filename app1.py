@@ -19,6 +19,8 @@ ISSUANCE_FEE_INR = 2.60 * GST_RATE
 REGISTRATION_FEE_INR = 104110 * GST_RATE
 
 # --- 2. SIDEBAR INPUTS ---
+st.sidebar.image("https://triaracap.com/logo.png", use_container_width=True)
+
 st.sidebar.header("📊 Project Configuration")
 proj_name = st.sidebar.text_input("Project Name", "Wind-Solar Hybrid Project")
 solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=100.0)
