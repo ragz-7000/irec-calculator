@@ -36,8 +36,7 @@ GST_RATE = 1.18
 
 # Fees from v2 Document
 ACC_OPENING_EUR = 500.00      
-ANNUAL_TRADE_ACC_EUR = 2000.00 
-REDEMPTION_FEE_EUR = 0.06     
+ANNUAL_TRADE_ACC_EUR = 2000.00     
 ISSUANCE_FEE_INR = 2.60 * GST_RATE 
 REGISTRATION_FEE_INR = 104110 * GST_RATE
 
@@ -80,10 +79,9 @@ total_irecs_period = total_irecs_annual * projection_years
 # A. Regulatory Costs (INR)
 # Account Opening and Registration are one-time (Year 1)
 one_time_costs = (ACC_OPENING_EUR * EUR_TO_INR) + REGISTRATION_FEE_INR
-# Maintenance, Issuance, Redemption, and Audit are recurring
+# Maintenance, Issuance, and Audit are recurring
 annual_recurring = (ANNUAL_TRADE_ACC_EUR * EUR_TO_INR) + \
                    (total_irecs_annual * ISSUANCE_FEE_INR) + \
-                   (total_irecs_annual * REDEMPTION_FEE_EUR * EUR_TO_INR) + \
                    (10000 * GST_RATE)
 
 total_op_costs = one_time_costs + (annual_recurring * projection_years)
@@ -120,8 +118,7 @@ cost_items = [
     "Registry Account Opening (One-time)",
     "Registry Registration (5-Year Validity + GST)", 
     "Registry Maintenance (Recurring)", 
-    "Issuance Fee (ICX + GST)", 
-    "Redemption Fee (Registry)", 
+    "Issuance Fee (ICX + GST)",  
     "Independent Verification Audit (+ GST)", 
     "Triara CAP's Success Fee (+GST)"
 ]
@@ -132,7 +129,6 @@ costs_inr = [
     REGISTRATION_FEE_INR,
     (ANNUAL_TRADE_ACC_EUR * EUR_TO_INR) * projection_years,
     (total_irecs_annual * ISSUANCE_FEE_INR) * projection_years,
-    (total_irecs_annual * REDEMPTION_FEE_EUR * EUR_TO_INR) * projection_years,
     (10000 * GST_RATE) * projection_years,
     my_fee
 ]
