@@ -6,26 +6,42 @@ from fpdf import FPDF
 import requests
 import time
 
-# Function to fetch rates with a 10-second timeout
-def get_live_exchange_rates():
+# --- 1. THE UPDATED LIVE FETCH ENGINE ---
+def get_verified_rates():
     try:
-        # We add a timestamp 't' to the URL to bypass any server-side caching
+        # We add a unique timestamp to the URL to force the API to give us 
+        # the absolute freshest data in its current cache.
         url = f"https://open.er-api.com/v6/latest/EUR?t={int(time.time())}"
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=5)
         data = response.json()
         
-        if response.status_code == 200:
-            eur_inr = data['rates']['INR']
-            usd_rate = data['rates']['USD']
-            usd_inr = eur_inr / usd_rate
-            return eur_inr, usd_inr
-        else:
-            return 106.17, 90.95
-    except Exception:
+        # Fresh live data
+        live_eur = data['rates']['INR']
+        live_usd = live_eur / data['rates']['USD']
+        return live_eur, live_usd
+    except:
+        # Fallback to your agreed-upon hardcoded rates
         return 106.17, 90.95
 
-# This ensures the price is fetched fresh on every app rerun if you want it 'Live'
-LIVE_EUR, LIVE_USD = get_live_exchange_rates()
+# Fetch on every run to ensure "Live" actually means live
+LIVE_EUR_RATE, LIVE_USD_RATE = get_verified_rates()
+
+# --- 2. THE SIDEBAR OVERRIDE (Add this in your Sidebar section) ---
+st.sidebar.header("💱 Currency Exchange")
+
+# Toggle between Live and Manual for the meeting
+mode = st.sidebar.radio("Rate Source", ["Live API", "Manual Override"], horizontal=True)
+
+if mode == "Live API":
+    EUR_TO_INR = LIVE_EUR_RATE
+    USD_TO_INR = LIVE_USD_RATE
+    st.sidebar.caption(f"Last API Sync: {time.strftime('%H:%M:%S')} IST")
+else:
+    EUR_TO_INR = st.sidebar.number_input("Set EUR/INR", value=106.17, step=0.01)
+    USD_TO_INR = st.sidebar.number_input("Set USD/INR", value=90.95, step=0.01)
+
+# Use these variables in your cost calculations
+st.sidebar.info(f"Using Rate: €1 = ₹{EUR_TO_INR:.2f}")
 
 
 # Page Configuration
