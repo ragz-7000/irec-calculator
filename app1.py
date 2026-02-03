@@ -3,6 +3,22 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 
+import requests
+
+@st.cache_data(ttl=3600) # Refreshes live rates once every hour
+def get_live_exchange_rates():
+    try:
+        # Fetching EUR/INR and USD/INR from a reliable open API
+        response = requests.get("https://open.er-api.com/v6/latest/EUR")
+        data = response.json()
+        eur_inr = data['rates']['INR']
+        usd_inr = eur_inr / data['rates']['USD']
+        return eur_inr, usd_inr
+    except:
+        return 106.17, 90.95 # Fallback to your current hardcoded rates if API fails
+
+LIVE_EUR, LIVE_USD = get_live_exchange_rates()
+
 # Page Configuration
 st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
 
