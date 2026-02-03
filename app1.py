@@ -4,20 +4,29 @@ import plotly.express as px
 from fpdf import FPDF
 
 import requests
+import time
 
-@st.cache_data(ttl=3600) # Refreshes live rates once every hour
+# Function to fetch rates with a 10-second timeout
 def get_live_exchange_rates():
     try:
-        # Fetching EUR/INR and USD/INR from a reliable open API
-        response = requests.get("https://open.er-api.com/v6/latest/EUR")
+        # We add a timestamp 't' to the URL to bypass any server-side caching
+        url = f"https://open.er-api.com/v6/latest/EUR?t={int(time.time())}"
+        response = requests.get(url, timeout=10)
         data = response.json()
-        eur_inr = data['rates']['INR']
-        usd_inr = eur_inr / data['rates']['USD']
-        return eur_inr, usd_inr
-    except:
-        return 106.17, 90.95 # Fallback to your current hardcoded rates if API fails
+        
+        if response.status_code == 200:
+            eur_inr = data['rates']['INR']
+            usd_rate = data['rates']['USD']
+            usd_inr = eur_inr / usd_rate
+            return eur_inr, usd_inr
+        else:
+            return 106.17, 90.95
+    except Exception:
+        return 106.17, 90.95
 
+# This ensures the price is fetched fresh on every app rerun if you want it 'Live'
 LIVE_EUR, LIVE_USD = get_live_exchange_rates()
+
 
 # Page Configuration
 st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
