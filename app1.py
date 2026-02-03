@@ -26,24 +26,6 @@ def get_verified_rates():
 # Fetch on every run to ensure "Live" actually means live
 LIVE_EUR_RATE, LIVE_USD_RATE = get_verified_rates()
 
-# --- 2. THE SIDEBAR OVERRIDE (Add this in your Sidebar section) ---
-st.sidebar.header("💱 Currency Exchange")
-
-# Toggle between Live and Manual for the meeting
-mode = st.sidebar.radio("Rate Source", ["Live API", "Manual Override"], horizontal=True)
-
-if mode == "Live API":
-    EUR_TO_INR = LIVE_EUR_RATE
-    USD_TO_INR = LIVE_USD_RATE
-    st.sidebar.caption(f"Last API Sync: {time.strftime('%H:%M:%S')} IST")
-else:
-    EUR_TO_INR = st.sidebar.number_input("Set EUR/INR", value=106.17, step=0.01)
-    USD_TO_INR = st.sidebar.number_input("Set USD/INR", value=90.95, step=0.01)
-
-# Use these variables in your cost calculations
-st.sidebar.info(f"Using Rate: €1 = ₹{EUR_TO_INR:.2f}")
-
-
 # Page Configuration
 st.set_page_config(page_title="I-REC Hybrid Asset Model", layout="wide")
 
@@ -102,6 +84,24 @@ wind_cuf = st.sidebar.slider("Wind CUF (%)", 25.0, 45.0, 35.0, 0.5) / 100
 # ADDED SIDEBAR FOR PROJECTION YEARS
 st.sidebar.header("⏳ Projection Horizon")
 projection_years = st.sidebar.slider("Number of Years", 1, 5, 1)
+
+# --- 2. THE SIDEBAR OVERRIDE (Add this in your Sidebar section) ---
+st.sidebar.header("💱 Currency Exchange")
+
+# Toggle between Live and Manual for the meeting
+mode = st.sidebar.radio("Rate Source", ["Live API", "Manual Override"], horizontal=True)
+
+if mode == "Live API":
+    EUR_TO_INR = LIVE_EUR_RATE
+    USD_TO_INR = LIVE_USD_RATE
+    st.sidebar.caption(f"Last API Sync: {time.strftime('%H:%M:%S')} IST")
+else:
+    EUR_TO_INR = st.sidebar.number_input("Set EUR/INR", value=106.17, step=0.01)
+    USD_TO_INR = st.sidebar.number_input("Set USD/INR", value=90.95, step=0.01)
+
+# Use these variables in your cost calculations
+st.sidebar.info(f"Using Rate: €1 = ₹{EUR_TO_INR:.2f}")
+
 
 st.sidebar.header("💹 Market Dynamics")
 irec_price_usd = st.sidebar.slider("I-REC Sale Price (USD)", 0.20, 1.20, 0.50, 0.05)
