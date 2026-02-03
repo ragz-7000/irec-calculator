@@ -55,7 +55,7 @@ wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=50.0)
 
 # ADDED SIDEBARS FOR CUF
 st.sidebar.header("⚙️ Capacity Utilization Factor")
-solar_cuf = st.sidebar.slider("Solar CUF (%)", 15.0, 30.0, 20.0, 0.5) / 100
+solar_cuf = st.sidebar.slider("Solar CUF (%)", 15.0, 30.0, 20.0, 0.1) / 100
 wind_cuf = st.sidebar.slider("Wind CUF (%)", 25.0, 45.0, 35.0, 0.5) / 100
 
 # ADDED SIDEBAR FOR PROJECTION YEARS
