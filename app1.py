@@ -197,8 +197,11 @@ with c_left:
         values=[float(total_period_expenses), float(client_net_profit)], 
         names=['Total Costs & Fees', 'Net Client Profit'],
         hole=0.4,
-        color_discrete_sequence=['#E74C3C', '#2ECC71']
+        # Using Slate Grey for Costs and Deep Corporate Blue for Profit
+        color_discrete_sequence=['#D1D8E0', '#003366'] 
     )
+    # Removing the legend to keep it clean, as the colors are distinct
+    fig_pie.update_layout(showlegend=True, margin=dict(t=0, b=0, l=0, r=0))
     st.plotly_chart(fig_pie, use_container_width=True)
 
 with c_right:
@@ -207,7 +210,20 @@ with c_right:
         x=["Gross Revenue", "Total Expenses", "Net Profit"],
         y=[gross_revenue, total_period_expenses, client_net_profit],
         color=["Revenue", "Expense", "Profit"],
+        # Mapping specific corporate shades to each bar
+        color_discrete_map={
+            "Revenue": "#003366",   # Deep Corporate Blue
+            "Expense": "#4A90E2",   # Steel Blue
+            "Profit": "#A3C1AD"     # Muted Sage (Professional Green)
+        },
         text_auto='.2s'
+    )
+    # Refining the bar layout for a cleaner look
+    fig_bar.update_layout(
+        showlegend=False,
+        plot_bgcolor='rgba(0,0,0,0)',
+        xaxis_title=None,
+        yaxis_title=None
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
