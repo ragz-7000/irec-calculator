@@ -73,13 +73,13 @@ with cent_co:
 
 st.sidebar.header("📊 Project Configuration")
 proj_name = st.sidebar.text_input("Project Name", "Wind-Solar Hybrid Project")
-solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=100.0)
-wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=50.0)
+solar_mw = st.sidebar.number_input("Solar Capacity (MW)", value=435.0)
+wind_mw = st.sidebar.number_input("Wind Capacity (MW)", value=551.25)
 
 # ADDED SIDEBARS FOR CUF
 st.sidebar.header("⚙️ Capacity Utilization Factor")
-solar_cuf = st.sidebar.slider("Solar CUF (%)", 15.0, 30.0, 20.0, 0.1) / 100
-wind_cuf = st.sidebar.slider("Wind CUF (%)", 25.0, 45.0, 35.0, 0.5) / 100
+solar_cuf = st.sidebar.slider("Solar CUF (%)", 15.0, 30.0, 22.9, 0.1) / 100
+wind_cuf = st.sidebar.slider("Wind CUF (%)", 25.0, 45.0, 37.0, 0.5) / 100
 
 # ADDED SIDEBAR FOR PROJECTION YEARS
 st.sidebar.header("⏳ Projection Horizon")
