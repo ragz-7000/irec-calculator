@@ -277,3 +277,34 @@ with col2:
 
 # Subtle note on the "No Double Accounting" requirement
 st.caption("Note: All documentation must confirm the device is not registered in any other mechanism or claiming additional government tariffs.")
+
+# --- 8. TRIARA CAP SCOPE OF WORK & SPECIAL FEE TERMS ---
+st.markdown("---")
+st.subheader("🎯 Triara CAP: Scope of Engagement")
+
+col_a, col_b = st.columns(2)
+
+with col_a:
+    st.markdown("""
+    **Primary Workstreams:**
+    * **I-REC Strategic Advisory:** Portfolio optimization and market entry strategy.
+    * **Project Registration:** End-to-end handling of local and central registry approvals.
+    * **I-REC Issuance:** Periodic data verification and lifecycle management of certificates.
+    * **Monetization & Sales:** Global counterparty sourcing and contract execution.
+    """)
+
+with col_b:
+    st.info("💡 **Special Fee Provision for Direct Sales**")
+    st.markdown(f"""
+    While the standard success fee is **{fee_pct}%**, a preferential rate applies 
+    to internal group transactions or direct client relationships.
+    
+    **Direct Sale Success Fee: 2.0%**
+    
+    *This applies to any I-REC monetization executed directly by Aditya Birla Renewables 
+    where Triara CAP facilitates the advisory and registry compliance but does not 
+    act as the primary broker.*
+    """)
+
+# Footnote for the Board
+st.caption("The reduced 2% fee ensures Triara CAP remains your technical partner for compliance even when you leverage your own direct sales channels.")
