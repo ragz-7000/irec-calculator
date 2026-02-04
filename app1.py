@@ -108,7 +108,7 @@ irec_price_usd = st.sidebar.slider("I-REC Sale Price (USD)", 0.20, 1.20, 0.50, 0
 irec_price_inr = irec_price_usd * USD_TO_INR
 
 st.sidebar.header("💼 Service Parameters")
-fee_pct = st.sidebar.slider("Triara CAP's Success Fee (%)", 15, 25, 17)
+fee_pct = st.sidebar.slider("Triara CAP's Success Fee (%)", 2, 20, 15)
 
 # --- 3. THE COMPLETE COST & REVENUE ENGINE ---
 # Updated to use dynamic CUF and years
