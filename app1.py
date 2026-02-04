@@ -296,7 +296,7 @@ with col_left:
     st.info("💡 **Standard Success Fee**")
     st.write(f"""
     For all sales and monetization efforts managed by Triara CAP, 
-     the success fee is set at **{fee_pct}%** of the net revenue. 
+     the success fee is set at **{15}%** of the net revenue. 
     This covers the full cost of counterparty sourcing and contract execution.
     """)
 
