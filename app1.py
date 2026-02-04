@@ -250,7 +250,7 @@ with col1:
     st.markdown("### **Execution Timelines**")
     timeline_data = {
         "Phase": ["Registration & Validation", "Verification & Issuance", "Monetization"],
-        "Expected Timeline": ["3 - 4 Months", "1 - 2 Months", "Post-Issuance (as per contract)"],
+        "Expected Timeline": ["3 - 4 Months", "1 - 2 Months", "Post-Issuance"],
         "Dependency": ["Complete documentation dossier", "Accurate generation data", "Market execution"]
     }
     st.table(pd.DataFrame(timeline_data))
@@ -274,9 +274,6 @@ with col2:
         * Photographs of Trivector Meters with clear timestamps
         * Wheeling Banking Agreement / Power Purchase Agreement (PPA)
         """)
-
-# Subtle note on the "No Double Accounting" requirement
-st.caption("Note: All documentation must confirm the device is not registered in any other mechanism or claiming additional government tariffs.")
 
 # --- 8. SERVICE SCOPE & FEE STRUCTURE ---
 st.markdown("---")
