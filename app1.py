@@ -140,7 +140,7 @@ client_net_profit = gross_revenue - total_period_expenses
 st.title(f"🚀 I-REC Valuation Dashboard for Aditya Birla Renewables")
 
 # CLEANED ASSUMPTION HEADER
-st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | Period: {projection_years} Year(s) | Solar CUF: {solar_cuf*100}% | Wind CUF: {wind_cuf*100}% | EUR/INR: {EUR_TO_INR} | USD/INR: {USD_TO_INR}")
+st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | Period: {projection_years} Year(s) | Solar CUF: {solar_cuf*100}% | Wind CUF: {wind_cuf*100}% | EUR/INR: {EUR_TO_INR:0.2f} | USD/INR: {USD_TO_INR:0.2f}")
 
 # Top Metrics
 m1, m2, m3, m4, m5 = st.columns(5)
