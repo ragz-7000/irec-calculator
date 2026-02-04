@@ -239,3 +239,40 @@ if st.button("🖨️ Prepare Print-Ready View"):
         """,
         height=0,
     )
+
+# --- 7. OPERATIONAL ROADMAP & DOCUMENTATION ---
+st.markdown("---")
+st.subheader("📋 Operational Roadmap & Compliance Requirements")
+
+col1, col2 = st.columns([1.2, 1])
+
+with col1:
+    st.markdown("### **Execution Timelines**")
+    timeline_data = {
+        "Phase": ["Registration & Validation", "Verification & Issuance", "Monetization"],
+        "Expected Timeline": ["3 - 4 Months", "1 - 2 Months", "Post-Issuance (as per contract)"],
+        "Dependency": ["Complete documentation dossier", "Accurate generation data", "Market execution"]
+    }
+    st.table(pd.DataFrame(timeline_data))
+
+with col2:
+    st.markdown("### **Key Documentation Required**")
+    with st.expander("🔍 View Checklist for Aditya Birla Renewables"):
+        st.markdown("""
+        **Project Technicals**
+        * Single Line Diagram (SLD) & Project Geo Co-ordinates
+        * Commissioning Certificate & Project Photographs
+        
+        **Compliance & Ownership**
+        * No Double Accounting Declaration (SCS-007 alignment)
+        * Owner's Declaration Letter (if registrant is not the legal owner)
+        * No RPO (Renewable Purchase Obligation) Declaration
+        
+        **Generation Data**
+        * Generation Statements (Last 6 Months)
+        * Photographs of Trivector Meters with clear timestamps
+        * Wheeling Banking Agreement / Power Purchase Agreement (PPA)
+        """)
+
+# Subtle note on the "No Double Accounting" requirement
+st.caption("Note: All documentation must confirm the device is not registered in any other mechanism or claiming additional government tariffs.")
