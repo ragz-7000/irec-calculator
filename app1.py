@@ -187,6 +187,7 @@ total_row = pd.DataFrame({
     "Avg. Cost per I-REC": [f"**₹{total_period_expenses/total_irecs_period:.2f}**"]
 })
 st.table(pd.concat([df_data, total_row], ignore_index=True))
+st.caption("Note: Calculations assume two device registrations (one for Solar and one for Wind) based on two distinct metering points. Any additional metering points will result in a proportional increase in the project registration fees.")
 
 # --- 6. VISUALIZATIONS ---
 st.markdown("---")
