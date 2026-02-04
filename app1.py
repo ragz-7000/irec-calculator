@@ -167,7 +167,7 @@ cost_items = [
 # Calculating period costs for the table
 costs_inr = [
     (ACC_OPENING_EUR * EUR_TO_INR),
-    REGISTRATION_FEE_INR,
+    (REGISTRATION_FEE_INR * 2),
     (ANNUAL_TRADE_ACC_EUR * EUR_TO_INR) * projection_years,
     (total_irecs_annual * ISSUANCE_FEE_INR) * projection_years,
     (10000 * GST_RATE) * projection_years,
