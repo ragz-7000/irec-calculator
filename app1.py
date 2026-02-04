@@ -264,9 +264,10 @@ with col2:
         * Commissioning Certificate & Project Photographs
         
         **Compliance & Ownership**
-        * No Double Accounting Declaration (SCS-007 alignment)
+        * No Double Accounting Declaration 
         * Owner's Declaration Letter (if registrant is not the legal owner)
         * No RPO (Renewable Purchase Obligation) Declaration
+        * Issuance is contingent upon a formal declaration from the off-taker or captive consumer confirming that the environmental attributes are not being utilized for any internal sustainability claims or third-party contractual obligations.")
         
         **Generation Data**
         * Generation Statements (Last 6 Months)
