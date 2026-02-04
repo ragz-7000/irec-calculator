@@ -137,7 +137,8 @@ total_period_expenses = total_op_costs + my_fee
 client_net_profit = gross_revenue - total_period_expenses
 
 # --- 4. DASHBOARD UI ---
-st.title(f"🚀 I-REC Valuation Dashboard for Aditya Birla Renewables")
+st.title("Strategic I-REC Monetization Proposal")
+st.markdown("##### **Prepared for Aditya Birla Renewables by Triara CAP**")
 
 # CLEANED ASSUMPTION HEADER
 st.info(f"Assumptions: Sale Price USD {irec_price_usd:0.2f} | Period: {projection_years} Year(s) | Solar CUF: {solar_cuf*100}% | Wind CUF: {wind_cuf*100}% | EUR/INR: {EUR_TO_INR:0.2f} | USD/INR: {USD_TO_INR:0.2f}")
