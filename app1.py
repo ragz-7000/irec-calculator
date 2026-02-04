@@ -296,7 +296,7 @@ with col_a:
 with col_b:
     st.info("💡 **Special Fee Provision for Direct Sales**")
     st.markdown(f"""
-    While the standard success fee is **{fee_pct}%**, a preferential rate applies 
+    While the standard success fee is **{15}%**, a preferential rate applies 
     to internal group transactions or direct client relationships.
     
     **Direct Sale Success Fee: 2.0%**
