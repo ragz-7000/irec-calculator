@@ -119,7 +119,7 @@ total_irecs_period = total_irecs_annual * projection_years
 
 # A. Regulatory Costs (INR)
 # Account Opening and Registration are one-time (Year 1)
-one_time_costs = (ACC_OPENING_EUR * EUR_TO_INR) + REGISTRATION_FEE_INR
+one_time_costs = (ACC_OPENING_EUR * EUR_TO_INR) + (REGISTRATION_FEE_INR * 2)
 # Maintenance, Issuance, and Audit are recurring
 annual_recurring = (ANNUAL_TRADE_ACC_EUR * EUR_TO_INR) + \
                    (total_irecs_annual * ISSUANCE_FEE_INR) + \
@@ -157,7 +157,7 @@ st.subheader(f"📋 Detailed Expenditure & Fee Schedule ({projection_years} Year
 
 cost_items = [
     "Registry Account Opening (One-time)",
-    "Registry Registration (5-Year Validity + GST)", 
+    "Project Registration (5-Year Validity + GST)", 
     "Registry Maintenance (Recurring)", 
     "Issuance Fee (ICX + GST)",  
     "Independent Verification Audit (+ GST)", 
